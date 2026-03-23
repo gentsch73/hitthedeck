@@ -16,42 +16,69 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/healthz', (req, res) => res.status(200).send('OK'));
 
 // ── CONFIG ──
-const TICK_RATE = 20;
-const MAP_SIZE = 1200;
-const BOAT_SPEED = 0.9;
-const WALK_SPEED = 0.4;
-const ROTATION_SPEED = 0.035;
-const CANNONBALL_SPEED = 3.0;
-const CANNONBALL_LIFETIME = 2500;
-const SHIP_MAX_HP = 100;
-const CANNONBALL_DAMAGE = 20;
-const DROWN_TIME = 4000; // ms in water before death
-const EMBARK_DIST = 15;
-const SHORE_DIST = 12; // how close to island to disembark
+const TICK = 20;
+const MAP = 1600;
+const WALK_SPEED = 0.55;
+const JUMP_VEL = 0.25;
+const GRAVITY = 0.012;
+const DROWN_TIME = 4000;
+const EMBARK_DIST = 18;
+const SHORE_DIST = 14;
+const CB_LIFETIME = 3000;
+const CB_DAMAGE = 18;
+const START_GOLD = 5000;
 
-// Bigger, sparser islands
+// Ship definitions
+const SHIPS = {
+  rowboat: {
+    name: 'Rowboat', price: 0, hp: 80,
+    speed: 0.85, turnRate: 0.04,
+    cannons: 'front', cannonCount: 1, reloadMs: 1200,
+  },
+  warship: {
+    name: 'War Galleon', price: 2000, hp: 200,
+    speed: 0.6, turnRate: 0.025,
+    cannons: 'side', cannonCount: 3, reloadMs: 2500,
+  },
+  tradeship: {
+    name: 'Trade Schooner', price: 1500, hp: 130,
+    speed: 0.75, turnRate: 0.032,
+    cannons: 'front', cannonCount: 1, reloadMs: 1000,
+  },
+};
+
+// 4 large islands, well-spaced
 const islands = [
-  { x: 0, z: 0, radius: 65, height: 18 },
-  { x: 350, z: 280, radius: 50, height: 14 },
-  { x: -320, z: -250, radius: 55, height: 16 },
-  { x: 300, z: -350, radius: 45, height: 12 },
-  { x: -400, z: 350, radius: 70, height: 20 },
+  { x: -350, z: -350, radius: 80, height: 20, name: 'Skull Isle' },
+  { x: 350, z: -350, radius: 90, height: 22, name: 'Palm Haven' },
+  { x: 350, z: 350, radius: 75, height: 18, name: 'Fort Rock' },
+  { x: -350, z: 350, radius: 85, height: 24, name: 'Treasure Cove' },
 ];
+
+// Obstacles on islands (trees/rocks for collision)
+const obstacles = [];
+islands.forEach(isl => {
+  for (let i = 0; i < 8; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const d = 10 + Math.random() * (isl.radius - 20);
+    obstacles.push({
+      x: isl.x + Math.cos(a) * d,
+      z: isl.z + Math.sin(a) * d,
+      radius: 2 + Math.random() * 2,
+      island: isl,
+    });
+  }
+});
 
 const players = {};
 const cannonballs = [];
 
-function spawnPosition() {
-  let x, z, valid;
+function spawnPos() {
+  let x, z;
   do {
-    x = (Math.random() - 0.5) * MAP_SIZE * 0.7;
-    z = (Math.random() - 0.5) * MAP_SIZE * 0.7;
-    valid = true;
-    for (const isl of islands) {
-      const dx = x - isl.x, dz = z - isl.z;
-      if (Math.sqrt(dx * dx + dz * dz) < isl.radius + 25) { valid = false; break; }
-    }
-  } while (!valid);
+    x = (Math.random() - 0.5) * MAP * 0.6;
+    z = (Math.random() - 0.5) * MAP * 0.6;
+  } while (isOnLand(x, z));
   return { x, z };
 }
 
@@ -66,55 +93,101 @@ function isOnLand(x, z) {
 function nearShore(x, z) {
   for (const isl of islands) {
     const dx = x - isl.x, dz = z - isl.z;
-    const dist = Math.sqrt(dx * dx + dz * dz);
-    if (dist < isl.radius + SHORE_DIST && dist > isl.radius - 5) return isl;
+    const d = Math.sqrt(dx * dx + dz * dz);
+    if (d < isl.radius + SHORE_DIST && d > isl.radius - 8) return isl;
+  }
+  return null;
+}
+
+function hitObstacle(x, z, r) {
+  for (const ob of obstacles) {
+    const dx = x - ob.x, dz = z - ob.z;
+    if (Math.sqrt(dx * dx + dz * dz) < ob.radius + r) return ob;
   }
   return null;
 }
 
 io.on('connection', (socket) => {
-  const spawn = spawnPosition();
-  const player = {
-    id: socket.id,
-    name: 'Pirate',
-    // Character position (when on land/swimming)
-    cx: spawn.x, cz: spawn.z, cRotation: Math.random() * Math.PI * 2,
+  const sp = spawnPos();
+  const p = {
+    id: socket.id, name: 'Pirate',
+    // Character
+    cx: sp.x, cz: sp.z, cy: 0, cRot: 0, cVelY: 0,
     // Boat
-    bx: spawn.x, bz: spawn.z, bRotation: Math.random() * Math.PI * 2,
-    bSpeed: 0, sails: 1,
+    bx: sp.x, bz: sp.z, bRot: Math.random() * Math.PI * 2, bSpeed: 0,
     // State
-    onBoat: true,
-    swimming: false,
-    swimStart: 0,
-    hp: SHIP_MAX_HP,
-    score: 0,
-    alive: true,
+    onBoat: true, swimming: false, swimStart: 0,
+    shipType: 'rowboat', ownedShips: ['rowboat'],
+    gold: START_GOLD, hp: SHIPS.rowboat.hp, maxHp: SHIPS.rowboat.hp,
+    score: 0, sails: 1, alive: true,
     // Input
-    input: { forward: false, backward: false, left: false, right: false, fire: false, action: false },
-    lastFire: 0,
-    lastActivity: Date.now(),
-    actionPressed: false, // debounce
+    input: {}, lastFire: 0, aimX: 0, aimZ: 0,
+    actionPressed: false, lastActivity: Date.now(),
   };
-  players[socket.id] = player;
+  players[socket.id] = p;
+  socket.emit('init', { id: socket.id, islands, obstacles, mapSize: MAP, ships: SHIPS, startGold: START_GOLD });
 
-  socket.emit('init', { id: socket.id, islands, mapSize: MAP_SIZE });
-  console.log(`+ ${socket.id} (${Object.keys(players).length} players)`);
-
-  socket.on('input', (inp) => {
+  socket.on('input', inp => {
     if (!players[socket.id]) return;
-    players[socket.id].input = inp;
+    Object.assign(players[socket.id].input, inp);
     players[socket.id].lastActivity = Date.now();
   });
 
-  socket.on('setSails', (level) => {
+  socket.on('aim', pos => {
     if (!players[socket.id]) return;
-    players[socket.id].sails = Math.max(0, Math.min(2, level));
+    players[socket.id].aimX = pos.x || 0;
+    players[socket.id].aimZ = pos.z || 0;
   });
 
-  socket.on('setName', (name) => {
+  socket.on('fire', () => {
     if (!players[socket.id]) return;
-    if (name && typeof name === 'string')
-      players[socket.id].name = name.trim().substring(0, 16);
+    const p = players[socket.id];
+    if (!p.onBoat || !p.alive) return;
+    const now = Date.now();
+    const ship = SHIPS[p.shipType];
+    if (now - p.lastFire < ship.reloadMs) return;
+    p.lastFire = now;
+    fireCannons(p);
+  });
+
+  socket.on('setSails', l => {
+    if (players[socket.id]) players[socket.id].sails = Math.max(0, Math.min(2, l));
+  });
+
+  socket.on('setName', n => {
+    if (players[socket.id] && n && typeof n === 'string')
+      players[socket.id].name = n.trim().substring(0, 16);
+  });
+
+  socket.on('buyShip', type => {
+    const p = players[socket.id];
+    if (!p || !SHIPS[type]) return;
+    if (p.ownedShips.includes(type)) return socket.emit('shopMsg', 'Already owned!');
+    if (p.gold < SHIPS[type].price) return socket.emit('shopMsg', 'Not enough gold!');
+    p.gold -= SHIPS[type].price;
+    p.ownedShips.push(type);
+    socket.emit('shopMsg', `Bought ${SHIPS[type].name}!`);
+    socket.emit('updatePlayer', { gold: p.gold, ownedShips: p.ownedShips });
+  });
+
+  socket.on('switchShip', type => {
+    const p = players[socket.id];
+    if (!p || !p.ownedShips.includes(type)) return;
+    if (!p.onBoat) return; // Must be on boat to switch (or just bought)
+    p.shipType = type;
+    const ship = SHIPS[type];
+    p.maxHp = ship.hp;
+    p.hp = ship.hp;
+    socket.emit('updatePlayer', { shipType: type, hp: p.hp, maxHp: p.maxHp });
+  });
+
+  socket.on('teleport', pos => {
+    const p = players[socket.id];
+    if (!p) return;
+    p.bx = pos.x; p.bz = pos.z;
+    p.cx = pos.x; p.cz = pos.z;
+    p.bSpeed = 0;
+    if (!p.onBoat) { p.onBoat = true; p.swimming = false; }
   });
 
   socket.on('heartbeat', () => {
@@ -127,15 +200,62 @@ io.on('connection', (socket) => {
   });
 });
 
+function fireCannons(p) {
+  const ship = SHIPS[p.shipType];
+  const tx = p.aimX, tz = p.aimZ;
+  const dx = tx - p.bx, dz = tz - p.bz;
+  const dist = Math.sqrt(dx * dx + dz * dz);
+  const aimAngle = Math.atan2(dx, dz);
+
+  if (ship.cannons === 'front') {
+    spawnCannonball(p, p.bx, p.bz, p.bRot, tx, tz, dist, 6, 0);
+  } else if (ship.cannons === 'side') {
+    // Determine which side to fire (left or right of ship)
+    let relAngle = aimAngle - p.bRot;
+    while (relAngle > Math.PI) relAngle -= Math.PI * 2;
+    while (relAngle < -Math.PI) relAngle += Math.PI * 2;
+    const side = relAngle > 0 ? 1 : -1; // 1=left, -1=right
+    const sideAngle = p.bRot + side * Math.PI / 2;
+
+    for (let i = 0; i < ship.cannonCount; i++) {
+      const offset = (i - 1) * 4; // -4, 0, 4 along ship
+      const ox = p.bx + Math.sin(p.bRot) * offset + Math.sin(sideAngle) * 5;
+      const oz = p.bz + Math.cos(p.bRot) * offset + Math.cos(sideAngle) * 5;
+      // Spread targets
+      const spread = (i - 1) * 6;
+      const stx = tx + Math.sin(p.bRot) * spread;
+      const stz = tz + Math.cos(p.bRot) * spread;
+      const sd = Math.sqrt((stx - ox) ** 2 + (stz - oz) ** 2);
+      spawnCannonball(p, ox, oz, sideAngle, stx, stz, sd, 0, 0);
+    }
+  }
+}
+
+function spawnCannonball(p, sx, sz, angle, tx, tz, dist, fwdOff, sideOff) {
+  const clampDist = Math.min(Math.max(dist, 20), 200);
+  const flightTime = clampDist / 2.5;
+  const dx = tx - sx, dz = tz - sz;
+  const d = Math.sqrt(dx * dx + dz * dz) || 1;
+
+  cannonballs.push({
+    x: sx + Math.sin(angle) * fwdOff,
+    z: sz + Math.cos(angle) * fwdOff,
+    y: 3.5,
+    vx: (dx / d) * (clampDist / flightTime) * 0.05,
+    vz: (dz / d) * (clampDist / flightTime) * 0.05,
+    vy: clampDist * 0.008,
+    owner: p.id,
+    born: Date.now(),
+    tx, tz, // target for client prediction
+  });
+}
+
 // Ghost cleanup
 setInterval(() => {
-  const connected = new Set();
-  for (const [id] of io.of('/').sockets) connected.add(id);
+  const conn = new Set();
+  for (const [id] of io.of('/').sockets) conn.add(id);
   for (const id in players) {
-    if (!connected.has(id)) {
-      delete players[id];
-      io.emit('playerLeft', id);
-    }
+    if (!conn.has(id)) { delete players[id]; io.emit('playerLeft', id); }
   }
 }, 5000);
 
@@ -147,198 +267,163 @@ setInterval(() => {
     const p = players[id];
     if (!p.alive) continue;
     const inp = p.input;
+    const ship = SHIPS[p.shipType];
 
     if (p.onBoat) {
-      // ── ON BOAT ──
-      // Rotation
-      if (inp.left) p.bRotation += ROTATION_SPEED;
-      if (inp.right) p.bRotation -= ROTATION_SPEED;
+      if (inp.left) p.bRot += ship.turnRate;
+      if (inp.right) p.bRot -= ship.turnRate;
 
-      // Speed based on sails
-      const maxSpeed = [0, BOAT_SPEED * 0.45, BOAT_SPEED][p.sails];
-      if (inp.forward) p.bSpeed = Math.min(p.bSpeed + 0.04, maxSpeed);
-      else if (inp.backward) p.bSpeed = Math.max(p.bSpeed - 0.04, -maxSpeed * 0.25);
+      const maxSpd = [0, ship.speed * 0.45, ship.speed][p.sails];
+      if (inp.forward) p.bSpeed = Math.min(p.bSpeed + 0.04, maxSpd);
+      else if (inp.backward) p.bSpeed = Math.max(p.bSpeed - 0.04, -maxSpd * 0.2);
       else {
         if (p.sails === 0) p.bSpeed *= 0.95;
-        else p.bSpeed += (maxSpeed * 0.8 - p.bSpeed) * 0.01; // sails push forward
+        else p.bSpeed += (maxSpd * 0.7 - p.bSpeed) * 0.008;
       }
 
-      p.bx += Math.sin(p.bRotation) * p.bSpeed;
-      p.bz += Math.cos(p.bRotation) * p.bSpeed;
+      p.bx += Math.sin(p.bRot) * p.bSpeed;
+      p.bz += Math.cos(p.bRot) * p.bSpeed;
 
-      // Map bounds
-      const half = MAP_SIZE / 2;
+      const half = MAP / 2;
       p.bx = Math.max(-half, Math.min(half, p.bx));
       p.bz = Math.max(-half, Math.min(half, p.bz));
 
-      // Island collision for boat
       for (const isl of islands) {
         const dx = p.bx - isl.x, dz = p.bz - isl.z;
         const dist = Math.sqrt(dx * dx + dz * dz);
-        const minDist = isl.radius + 6;
-        if (dist < minDist) {
-          const angle = Math.atan2(dx, dz);
-          p.bx = isl.x + Math.sin(angle) * minDist;
-          p.bz = isl.z + Math.cos(angle) * minDist;
+        const min = isl.radius + 8;
+        if (dist < min) {
+          const a = Math.atan2(dx, dz);
+          p.bx = isl.x + Math.sin(a) * min;
+          p.bz = isl.z + Math.cos(a) * min;
           p.bSpeed *= 0.2;
         }
       }
 
-      // Character follows boat
-      p.cx = p.bx;
-      p.cz = p.bz;
-      p.cRotation = p.bRotation;
+      p.cx = p.bx; p.cz = p.bz; p.cRot = p.bRot;
 
-      // Disembark: press action near shore
+      // Disembark
       if (inp.action && !p.actionPressed) {
         p.actionPressed = true;
         const shore = nearShore(p.bx, p.bz);
         if (shore) {
-          // Place character on the island edge
-          const angle = Math.atan2(p.bx - shore.x, p.bz - shore.z);
-          p.cx = shore.x + Math.sin(angle) * (shore.radius - 3);
-          p.cz = shore.z + Math.cos(angle) * (shore.radius - 3);
-          p.cRotation = angle;
+          const a = Math.atan2(p.bx - shore.x, p.bz - shore.z);
+          p.cx = shore.x + Math.sin(a) * (shore.radius - 5);
+          p.cz = shore.z + Math.cos(a) * (shore.radius - 5);
+          p.cy = 3;
+          p.cRot = a;
           p.onBoat = false;
           p.swimming = false;
         }
       }
       if (!inp.action) p.actionPressed = false;
 
-      // Fire cannon (forward)
-      if (inp.fire && now - p.lastFire > 1000) {
-        p.lastFire = now;
-        cannonballs.push({
-          x: p.bx + Math.sin(p.bRotation) * 7,
-          z: p.bz + Math.cos(p.bRotation) * 7,
-          vx: Math.sin(p.bRotation) * CANNONBALL_SPEED + Math.sin(p.bRotation) * p.bSpeed * 0.3,
-          vz: Math.cos(p.bRotation) * CANNONBALL_SPEED + Math.cos(p.bRotation) * p.bSpeed * 0.3,
-          owner: id, born: now, y: 3, vy: 0.6,
-        });
-      }
-
     } else {
       // ── ON FOOT ──
-      if (inp.left) p.cRotation += ROTATION_SPEED * 1.5;
-      if (inp.right) p.cRotation -= ROTATION_SPEED * 1.5;
+      if (inp.left) p.cRot += 0.06;
+      if (inp.right) p.cRot -= 0.06;
 
-      let moveX = 0, moveZ = 0;
-      if (inp.forward) {
-        moveX = Math.sin(p.cRotation) * WALK_SPEED;
-        moveZ = Math.cos(p.cRotation) * WALK_SPEED;
-      }
-      if (inp.backward) {
-        moveX = -Math.sin(p.cRotation) * WALK_SPEED * 0.5;
-        moveZ = -Math.cos(p.cRotation) * WALK_SPEED * 0.5;
-      }
+      let mx = 0, mz = 0;
+      if (inp.forward) { mx = Math.sin(p.cRot) * WALK_SPEED; mz = Math.cos(p.cRot) * WALK_SPEED; }
+      if (inp.backward) { mx = -Math.sin(p.cRot) * WALK_SPEED * 0.5; mz = -Math.cos(p.cRot) * WALK_SPEED * 0.5; }
 
-      const newX = p.cx + moveX;
-      const newZ = p.cz + moveZ;
+      const nx = p.cx + mx, nz = p.cz + mz;
 
-      const onLand = isOnLand(newX, newZ);
-      if (onLand) {
-        p.cx = newX;
-        p.cz = newZ;
-        p.swimming = false;
-        p.swimStart = 0;
+      // Obstacle collision
+      const ob = hitObstacle(nx, nz, 1);
+      if (!ob) {
+        p.cx = nx; p.cz = nz;
       } else {
-        // Walking into water
-        p.cx = newX;
-        p.cz = newZ;
-        if (!p.swimming) {
-          p.swimming = true;
-          p.swimStart = now;
-        }
+        // Slide along obstacle
+        const a = Math.atan2(nx - ob.x, nz - ob.z);
+        p.cx = ob.x + Math.sin(a) * (ob.radius + 1.2);
+        p.cz = ob.z + Math.cos(a) * (ob.radius + 1.2);
       }
 
-      // Drowning
-      if (p.swimming && now - p.swimStart > DROWN_TIME) {
-        // Die and respawn on boat
-        p.hp -= 50;
-        if (p.hp <= 0) {
-          respawnPlayer(p);
-          io.to(id).emit('sunk', { by: 'the sea' });
-        } else {
-          // Teleport back to boat
-          p.onBoat = true;
-          p.swimming = false;
-          p.cx = p.bx;
-          p.cz = p.bz;
+      // Jump
+      if (inp.jump && p.cy <= 3.1 && !p.swimming) {
+        p.cVelY = JUMP_VEL;
+      }
+      p.cVelY -= GRAVITY;
+      p.cy += p.cVelY;
+
+      const land = isOnLand(p.cx, p.cz);
+      const groundY = land ? 3 : -0.5;
+      if (p.cy < groundY) { p.cy = groundY; p.cVelY = 0; }
+
+      if (!land) {
+        if (!p.swimming) { p.swimming = true; p.swimStart = now; }
+        if (now - p.swimStart > DROWN_TIME) {
+          p.hp -= 60;
+          if (p.hp <= 0) { respawn(p); io.to(id).emit('sunk', { by: 'the sea' }); }
+          else { p.onBoat = true; p.swimming = false; p.cx = p.bx; p.cz = p.bz; p.cy = 0; }
         }
+      } else {
+        p.swimming = false;
       }
 
-      // Embark: press action near own boat
+      // Embark
       if (inp.action && !p.actionPressed) {
         p.actionPressed = true;
         const dx = p.cx - p.bx, dz = p.cz - p.bz;
         if (dx * dx + dz * dz < EMBARK_DIST * EMBARK_DIST) {
-          p.onBoat = true;
-          p.swimming = false;
-          p.cx = p.bx;
-          p.cz = p.bz;
+          p.onBoat = true; p.swimming = false; p.cx = p.bx; p.cz = p.bz; p.cy = 0;
         }
       }
       if (!inp.action) p.actionPressed = false;
     }
   }
 
-  // ── CANNONBALLS ──
+  // Cannonballs
   for (let i = cannonballs.length - 1; i >= 0; i--) {
     const cb = cannonballs[i];
-    cb.x += cb.vx; cb.z += cb.vz; cb.y += cb.vy; cb.vy -= 0.045;
+    cb.x += cb.vx; cb.z += cb.vz; cb.y += cb.vy; cb.vy -= 0.04;
 
-    if (now - cb.born > CANNONBALL_LIFETIME || cb.y < -1) {
-      cannonballs.splice(i, 1); continue;
-    }
+    if (now - cb.born > CB_LIFETIME || cb.y < -1) { cannonballs.splice(i, 1); continue; }
 
-    // Hit boats
     for (const id in players) {
       if (id === cb.owner) continue;
       const p = players[id];
       if (!p.alive) continue;
-      // Hit the boat
       const dx = cb.x - p.bx, dz = cb.z - p.bz;
-      if (dx * dx + dz * dz < 80) {
-        p.hp -= CANNONBALL_DAMAGE;
+      if (dx * dx + dz * dz < 100) {
+        p.hp -= CB_DAMAGE;
         cannonballs.splice(i, 1);
         if (p.hp <= 0) {
-          if (players[cb.owner]) players[cb.owner].score += 1;
-          io.to(id).emit('sunk', { by: players[cb.owner]?.name || '?' });
-          respawnPlayer(p);
+          const killer = players[cb.owner];
+          if (killer) { killer.score += 1; killer.gold += 200; }
+          io.to(id).emit('sunk', { by: killer?.name || '?' });
+          respawn(p);
         }
         break;
       }
     }
   }
 
-  // ── BROADCAST ──
-  const state = {
-    players: {},
-    cannonballs: cannonballs.map(cb => ({ x: cb.x, z: cb.z, y: cb.y })),
-  };
+  // Broadcast
+  const st = { players: {}, cannonballs: cannonballs.map(c => ({ x: c.x, z: c.z, y: c.y })) };
   for (const id in players) {
     const p = players[id];
-    state.players[id] = {
-      cx: p.cx, cz: p.cz, cRotation: p.cRotation,
-      bx: p.bx, bz: p.bz, bRotation: p.bRotation,
-      bSpeed: p.bSpeed, sails: p.sails,
-      onBoat: p.onBoat, swimming: p.swimming,
-      hp: p.hp, score: p.score, name: p.name, alive: p.alive,
+    st.players[id] = {
+      cx: p.cx, cz: p.cz, cy: p.cy, cRot: p.cRot,
+      bx: p.bx, bz: p.bz, bRot: p.bRot, bSpeed: p.bSpeed,
+      sails: p.sails, onBoat: p.onBoat, swimming: p.swimming,
+      hp: p.hp, maxHp: p.maxHp, score: p.score, gold: p.gold,
+      name: p.name, alive: p.alive, shipType: p.shipType,
+      aimX: p.aimX, aimZ: p.aimZ,
     };
   }
-  io.volatile.emit('state', state);
+  io.volatile.emit('state', st);
 
-}, 1000 / TICK_RATE);
+}, 1000 / TICK);
 
-function respawnPlayer(p) {
-  const spawn = spawnPosition();
-  p.bx = spawn.x; p.bz = spawn.z;
-  p.bRotation = Math.random() * Math.PI * 2;
-  p.bSpeed = 0; p.sails = 1;
-  p.cx = spawn.x; p.cz = spawn.z;
-  p.cRotation = p.bRotation;
+function respawn(p) {
+  const sp = spawnPos();
+  p.bx = sp.x; p.bz = sp.z; p.bRot = Math.random() * Math.PI * 2; p.bSpeed = 0;
+  p.cx = sp.x; p.cz = sp.z; p.cy = 0; p.cRot = p.bRot;
   p.onBoat = true; p.swimming = false;
-  p.hp = SHIP_MAX_HP; p.alive = true;
+  p.hp = SHIPS[p.shipType].hp; p.maxHp = SHIPS[p.shipType].hp;
+  p.sails = 1; p.alive = true;
 }
 
 const PORT = process.env.PORT || 3000;
