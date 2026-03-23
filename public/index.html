@@ -3,137 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Krew3D - Pirate Battle</title>
+<title>Krew3D</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
-canvas#gameCanvas { display: block; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#000;font-family:'Segoe UI',sans-serif;user-select:none}
 
-#health-bar-wrap {
-  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-  width: 300px; height: 24px; background: rgba(0,0,0,0.6);
-  border: 2px solid rgba(255,255,255,0.3); border-radius: 12px;
-  overflow: hidden; z-index: 10; display: none;
-}
-#health-bar {
-  height: 100%; width: 100%; background: linear-gradient(90deg, #2ecc71 0%, #2ecc71 60%, #f1c40f 80%, #e74c3c 100%);
-  transition: width 0.3s; border-radius: 12px;
-}
-#health-text {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-  color: #fff; font-weight: bold; font-size: 13px; text-shadow: 1px 1px 2px #000;
-}
+#health-bar-wrap{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);width:280px;height:22px;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.25);border-radius:11px;overflow:hidden;z-index:10;display:none}
+#health-bar{height:100%;width:100%;background:linear-gradient(90deg,#e74c3c,#f1c40f 50%,#2ecc71);transition:width .3s;border-radius:11px}
+#health-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-weight:bold;font-size:12px;text-shadow:1px 1px 2px #000}
 
-#minimap {
-  position: fixed; bottom: 20px; right: 20px;
-  width: 180px; height: 180px;
-  background: rgba(10, 30, 60, 0.8);
-  border: 2px solid rgba(255,255,255,0.3);
-  border-radius: 50%; z-index: 10; overflow: hidden; display: none;
-}
+#minimap{position:fixed;bottom:20px;right:20px;width:170px;height:170px;background:rgba(10,30,60,.8);border:2px solid rgba(255,255,255,.25);border-radius:50%;z-index:10;display:none}
 
-#score-board {
-  position: fixed; top: 15px; right: 15px;
-  background: rgba(0,0,0,0.6); color: #fff;
-  padding: 12px 18px; border-radius: 10px;
-  font-size: 13px; z-index: 10; display: none;
-  border: 1px solid rgba(255,255,255,0.15);
-  max-height: 300px; overflow-y: auto;
-}
-#score-board h3 { margin-bottom: 8px; color: #f1c40f; font-size: 14px; }
-.score-row { display: flex; justify-content: space-between; gap: 20px; padding: 2px 0; }
-.score-row.me { color: #2ecc71; font-weight: bold; }
+#score-board{position:fixed;top:12px;right:12px;background:rgba(0,0,0,.55);color:#fff;padding:10px 16px;border-radius:10px;font-size:12px;z-index:10;display:none;border:1px solid rgba(255,255,255,.12);max-height:260px;overflow-y:auto}
+#score-board h3{margin-bottom:6px;color:#f1c40f;font-size:13px}
+.sr{display:flex;justify-content:space-between;gap:16px;padding:2px 0}
+.sr.me{color:#2ecc71;font-weight:bold}
 
-#info-panel {
-  position: fixed; top: 15px; left: 15px;
-  background: rgba(0,0,0,0.6); color: #fff;
-  padding: 12px 18px; border-radius: 10px;
-  font-size: 12px; z-index: 10; display: none;
-  border: 1px solid rgba(255,255,255,0.15); line-height: 1.8;
-}
-#info-panel kbd {
-  background: rgba(255,255,255,0.15); padding: 2px 6px;
-  border-radius: 4px; font-size: 11px;
-}
+#info-panel{position:fixed;top:12px;left:12px;background:rgba(0,0,0,.55);color:#fff;padding:10px 14px;border-radius:10px;font-size:11px;z-index:10;display:none;border:1px solid rgba(255,255,255,.12);line-height:1.7}
+#info-panel kbd{background:rgba(255,255,255,.13);padding:1px 5px;border-radius:3px;font-size:10px}
 
-#sails-indicator {
-  position: fixed; bottom: 65px; left: 50%; transform: translateX(-50%);
-  color: #fff; font-size: 13px; z-index: 10; display: none;
-  background: rgba(0,0,0,0.5); padding: 4px 14px; border-radius: 8px;
-}
+#sails-indicator{position:fixed;bottom:62px;left:50%;transform:translateX(-50%);color:#fff;font-size:12px;z-index:10;display:none;background:rgba(0,0,0,.45);padding:3px 12px;border-radius:7px}
 
-#connection-status {
-  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
-  background: rgba(0,0,0,0.8); color: #e74c3c; padding: 15px 30px;
-  border-radius: 10px; font-size: 16px; z-index: 200; display: none;
-  text-align: center;
-}
-#connection-status.connected { display: none; }
-#connection-status.connecting { display: block; color: #f1c40f; }
-#connection-status.disconnected { display: block; color: #e74c3c; }
+#action-prompt{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);color:#f1c40f;font-size:15px;font-weight:bold;z-index:10;display:none;background:rgba(0,0,0,.6);padding:8px 20px;border-radius:10px;text-shadow:0 1px 3px #000}
 
-#death-screen {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-  display: none; justify-content: center; align-items: center;
-  z-index: 100; flex-direction: column; color: #fff;
-}
-#death-screen h1 { font-size: 48px; color: #e74c3c; margin-bottom: 10px; }
+#drown-bar-wrap{position:fixed;bottom:58px;left:50%;transform:translateX(-50%);width:200px;height:8px;background:rgba(0,0,0,.5);border-radius:4px;z-index:10;display:none;overflow:hidden}
+#drown-bar{height:100%;width:100%;background:#3498db;transition:width .2s;border-radius:4px}
 
-#name-input-wrap {
-  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  z-index: 200; background: rgba(0,0,0,0.85); padding: 30px 40px;
-  border-radius: 16px; text-align: center; color: #fff;
-  border: 2px solid rgba(241,196,15,0.5);
-}
-#name-input-wrap h2 { color: #f1c40f; margin-bottom: 15px; font-size: 28px; }
-#name-input {
-  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
-  color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 16px;
-  outline: none; width: 220px; text-align: center;
-}
-#name-input::placeholder { color: rgba(255,255,255,0.4); }
-#name-submit {
-  display: block; margin: 12px auto 0; padding: 10px 30px;
-  background: #f1c40f; color: #000; border: none; border-radius: 8px;
-  font-size: 15px; font-weight: bold; cursor: pointer;
-}
-#name-submit:hover { background: #f39c12; }
+#connection-status{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#e74c3c;padding:15px 30px;border-radius:10px;font-size:16px;z-index:200;display:none;text-align:center}
 
-#player-count {
-  position: fixed; bottom: 8px; left: 15px; color: rgba(255,255,255,0.5);
-  font-size: 11px; z-index: 10; display: none;
-}
+#death-screen{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center;z-index:100;flex-direction:column;color:#fff}
+#death-screen h1{font-size:44px;color:#e74c3c;margin-bottom:8px}
+
+#name-input-wrap{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200;background:rgba(0,0,0,.88);padding:28px 36px;border-radius:14px;text-align:center;color:#fff;border:2px solid rgba(241,196,15,.4)}
+#name-input-wrap h2{color:#f1c40f;margin-bottom:12px;font-size:26px}
+#name-input{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;padding:9px 14px;border-radius:7px;font-size:15px;outline:none;width:200px;text-align:center}
+#name-input::placeholder{color:rgba(255,255,255,.35)}
+#name-submit{display:block;margin:10px auto 0;padding:9px 28px;background:#f1c40f;color:#000;border:none;border-radius:7px;font-size:14px;font-weight:bold;cursor:pointer}
+#name-submit:hover{background:#f39c12}
+
+#player-count{position:fixed;bottom:6px;left:12px;color:rgba(255,255,255,.4);font-size:10px;z-index:10;display:none}
+
+#state-label{position:fixed;top:85px;left:12px;color:rgba(255,255,255,.6);font-size:11px;z-index:10;display:none;background:rgba(0,0,0,.3);padding:2px 8px;border-radius:5px}
 </style>
 </head>
 <body>
 
 <div id="name-input-wrap">
   <h2>KREW 3D</h2>
-  <p style="margin-bottom:15px;opacity:0.7;font-size:13px">Enter your pirate name</p>
+  <p style="margin-bottom:12px;opacity:.6;font-size:12px">Enter your pirate name</p>
   <input id="name-input" type="text" placeholder="Captain..." maxlength="16" autofocus>
   <button id="name-submit">SET SAIL!</button>
 </div>
 
-<div id="connection-status">Connecting...</div>
-
+<div id="connection-status"></div>
 <div id="info-panel">
   <strong style="color:#f1c40f">Controls</strong><br>
-  <kbd>W</kbd><kbd>S</kbd> Forward / Back<br>
+  <kbd>W</kbd><kbd>S</kbd> Move<br>
   <kbd>A</kbd><kbd>D</kbd> Turn<br>
-  <kbd>Space</kbd> Fire Cannons<br>
-  <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Sails
+  <kbd>Space</kbd> Fire Cannon<br>
+  <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Sails<br>
+  <kbd>E</kbd> Board / Leave ship
 </div>
-
 <div id="sails-indicator"></div>
-<div id="health-bar-wrap"><div id="health-bar"></div><div id="health-text">100 HP</div></div>
+<div id="health-bar-wrap"><div id="health-bar"></div><div id="health-text">100</div></div>
+<div id="drown-bar-wrap"><div id="drown-bar"></div></div>
+<div id="action-prompt"></div>
 <canvas id="minimap"></canvas>
 <div id="score-board"><h3>Scoreboard</h3><div id="score-list"></div></div>
 <div id="player-count"></div>
+<div id="state-label"></div>
 
 <div id="death-screen">
   <h1>SUNK!</h1>
-  <p id="death-msg">You were sunk</p>
-  <p style="margin-top:15px;opacity:0.5;font-size:14px">Respawning...</p>
+  <p id="death-msg"></p>
+  <p style="margin-top:12px;opacity:.4;font-size:13px">Respawning...</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -141,68 +84,65 @@ canvas#gameCanvas { display: block; }
 <script>
 // ── GLOBALS ──
 let socket, scene, camera, renderer, clock;
-let myId = null;
-let mapSize = 800;
-let islandsData = [];
+let myId = null, mapSize = 1200, islandsData = [];
 let waterMesh;
-let shipMeshes = {};
+let entityGroups = {}; // id -> { boatGroup, charGroup, nameSprite, ... }
 let cannonballMeshes = [];
 let gameState = { players: {}, cannonballs: [] };
 let keys = {};
-let started = false;
-let playerName = 'Pirate';
+let started = false, playerName = 'Pirate';
+const DROWN_TIME = 4000;
 
-const minimapCanvas = document.getElementById('minimap');
-const minimapCtx = minimapCanvas.getContext('2d');
-minimapCanvas.width = 180;
-minimapCanvas.height = 180;
+const mmCanvas = document.getElementById('minimap');
+const mmCtx = mmCanvas.getContext('2d');
+mmCanvas.width = 170; mmCanvas.height = 170;
 
-// ── NAME INPUT ──
+// ── START ──
 document.getElementById('name-submit').onclick = startGame;
-document.getElementById('name-input').onkeydown = (e) => { if (e.key === 'Enter') startGame(); };
+document.getElementById('name-input').onkeydown = e => { if (e.key === 'Enter') startGame(); };
 
 function startGame() {
   playerName = document.getElementById('name-input').value.trim() || 'Pirate';
   document.getElementById('name-input-wrap').style.display = 'none';
-
-  // Show HUD
-  ['info-panel','health-bar-wrap','score-board','sails-indicator','minimap','player-count']
+  ['info-panel','health-bar-wrap','score-board','sails-indicator','minimap','player-count','state-label']
     .forEach(id => document.getElementById(id).style.display = 'block');
-
   started = true;
   initThree();
   connectSocket();
   animate();
-
-  // Focus canvas for key events
-  renderer.domElement.setAttribute('tabindex', '0');
-  renderer.domElement.focus();
 }
 
-// ── THREE.JS ──
+// ── THREE.JS SETUP ──
 function initThree() {
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x87ceeb, 0.0015);
+  scene.fog = new THREE.FogExp2(0x6baed6, 0.0012);
 
-  camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 1, 2000);
-  camera.position.set(0, 40, -60);
+  camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 1, 2500);
+  camera.position.set(0, 30, -50);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, canvas: undefined });
+  renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(innerWidth, innerHeight);
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setClearColor(0x87ceeb);
-  renderer.domElement.id = 'gameCanvas';
+  renderer.setClearColor(0x7ec8e3); // lighter sky
   document.body.appendChild(renderer.domElement);
 
   clock = new THREE.Clock();
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-  const sun = new THREE.DirectionalLight(0xfff4e0, 1.0);
-  sun.position.set(200, 300, 100);
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+  const sun = new THREE.DirectionalLight(0xfff0d0, 1.1);
+  sun.position.set(300, 400, 200);
   scene.add(sun);
-  scene.add(new THREE.HemisphereLight(0x87ceeb, 0x2e6b4f, 0.4));
+  scene.add(new THREE.HemisphereLight(0x87ceeb, 0x3a7a5a, 0.35));
 
-  createWater();
+  // Water - darker blue, distinct from sky
+  const wGeo = new THREE.PlaneGeometry(3000, 3000, 100, 100);
+  waterMesh = new THREE.Mesh(wGeo, new THREE.MeshPhongMaterial({
+    color: 0x0e5e8a, transparent: true, opacity: 0.88,
+    shininess: 80, specular: 0x2277aa,
+  }));
+  waterMesh.rotation.x = -Math.PI / 2;
+  scene.add(waterMesh);
 
   window.addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight;
@@ -210,255 +150,287 @@ function initThree() {
     renderer.setSize(innerWidth, innerHeight);
   });
 
-  // Key events on WINDOW (not canvas) to avoid focus issues
-  window.addEventListener('keydown', (e) => {
+  window.addEventListener('keydown', e => {
     if (!started) return;
     keys[e.code] = true;
-    if (e.code === 'Digit1' && socket?.connected) socket.emit('setSails', 0);
-    if (e.code === 'Digit2' && socket?.connected) socket.emit('setSails', 1);
-    if (e.code === 'Digit3' && socket?.connected) socket.emit('setSails', 2);
-    // Prevent space scrolling
+    if (e.code === 'Digit1') socket?.emit('setSails', 0);
+    if (e.code === 'Digit2') socket?.emit('setSails', 1);
+    if (e.code === 'Digit3') socket?.emit('setSails', 2);
     if (e.code === 'Space') e.preventDefault();
   });
-  window.addEventListener('keyup', (e) => { keys[e.code] = false; });
-
-  // Prevent losing focus
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
   window.addEventListener('blur', () => { keys = {}; });
 }
 
-function createWater() {
-  const geo = new THREE.PlaneGeometry(2000, 2000, 100, 100);
-  const mat = new THREE.MeshPhongMaterial({
-    color: 0x1a6b8a, transparent: true, opacity: 0.85,
-    shininess: 100, specular: 0x4488aa,
-  });
-  waterMesh = new THREE.Mesh(geo, mat);
-  waterMesh.rotation.x = -Math.PI / 2;
-  scene.add(waterMesh);
-}
+// ── CREATE 3D OBJECTS ──
+function createRowboat() {
+  const g = new THREE.Group();
 
-function animateWater(time) {
-  const pos = waterMesh.geometry.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i);
-    pos.setZ(i,
-      Math.sin(x * 0.03 + time * 1.5) * 0.8 +
-      Math.sin(y * 0.04 + time * 1.2) * 0.6 +
-      Math.sin((x + y) * 0.02 + time * 0.8) * 1.0
+  // Hull - flat bottom boat
+  const hullGeo = new THREE.BoxGeometry(3.5, 1.5, 9);
+  const hull = new THREE.Mesh(hullGeo, new THREE.MeshPhongMaterial({ color: 0x8B6914 }));
+  hull.position.y = 0.8;
+  g.add(hull);
+
+  // Sides (higher edges)
+  for (const side of [-1, 1]) {
+    const rail = new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 1.2, 9.2),
+      new THREE.MeshPhongMaterial({ color: 0x6B4E12 })
     );
-  }
-  pos.needsUpdate = true;
-  waterMesh.geometry.computeVertexNormals();
-}
-
-function createIsland(data) {
-  const group = new THREE.Group();
-
-  const cone = new THREE.Mesh(
-    new THREE.ConeGeometry(data.radius, data.height, 16),
-    new THREE.MeshPhongMaterial({ color: 0x8B7355, flatShading: true })
-  );
-  cone.position.y = data.height * 0.3;
-  group.add(cone);
-
-  const top = new THREE.Mesh(
-    new THREE.SphereGeometry(data.radius * 0.7, 12, 8),
-    new THREE.MeshPhongMaterial({ color: 0x2d8a4e, flatShading: true })
-  );
-  top.position.y = data.height * 0.7;
-  top.scale.y = 0.4;
-  group.add(top);
-
-  for (let i = 0; i < 3; i++) {
-    const angle = (i / 3) * Math.PI * 2 + Math.random();
-    const palm = createPalmTree();
-    palm.position.set(Math.cos(angle) * data.radius * 0.3, data.height * 0.6, Math.sin(angle) * data.radius * 0.3);
-    palm.scale.setScalar(0.5 + Math.random() * 0.3);
-    group.add(palm);
+    rail.position.set(side * 1.9, 1.7, 0);
+    g.add(rail);
   }
 
-  const sand = new THREE.Mesh(
-    new THREE.CylinderGeometry(data.radius + 3, data.radius + 5, 1, 24),
-    new THREE.MeshPhongMaterial({ color: 0xf4d798 })
-  );
-  sand.position.y = 0.3;
-  group.add(sand);
-
-  group.position.set(data.x, 0, data.z);
-  scene.add(group);
-}
-
-function createPalmTree() {
-  const group = new THREE.Group();
-  const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.3, 0.5, 8, 6),
+  // Bow (pointed front)
+  const bow = new THREE.Mesh(
+    new THREE.ConeGeometry(2, 3, 4),
     new THREE.MeshPhongMaterial({ color: 0x8B6914 })
   );
-  trunk.position.y = 4;
-  trunk.rotation.z = (Math.random() - 0.5) * 0.3;
-  group.add(trunk);
+  bow.rotation.x = Math.PI / 2;
+  bow.position.set(0, 1, 5.5);
+  g.add(bow);
 
-  for (let i = 0; i < 5; i++) {
-    const a = (i / 5) * Math.PI * 2;
-    const leaf = new THREE.Mesh(
-      new THREE.ConeGeometry(2.5, 4, 4),
-      new THREE.MeshPhongMaterial({ color: 0x1a8a1a, flatShading: true })
-    );
-    leaf.position.set(Math.cos(a) * 1.5, 8, Math.sin(a) * 1.5);
-    leaf.rotation.z = Math.cos(a) * 0.8;
-    leaf.rotation.x = Math.sin(a) * 0.8;
-    group.add(leaf);
-  }
-  return group;
+  // Stern
+  const stern = new THREE.Mesh(
+    new THREE.BoxGeometry(3.8, 2, 0.4),
+    new THREE.MeshPhongMaterial({ color: 0x6B4E12 })
+  );
+  stern.position.set(0, 1.5, -4.6);
+  g.add(stern);
+
+  // Small mast
+  const mast = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.12, 0.15, 7, 6),
+    new THREE.MeshPhongMaterial({ color: 0x543210 })
+  );
+  mast.position.set(0, 5, -0.5);
+  g.add(mast);
+
+  // Small sail
+  const sail = new THREE.Mesh(
+    new THREE.PlaneGeometry(3.2, 4.5),
+    new THREE.MeshPhongMaterial({ color: 0xf5eed6, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+  );
+  sail.position.set(0, 6, -0.3);
+  sail.name = 'sail';
+  g.add(sail);
+
+  // CANNON at front
+  const cannonBase = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.5, 0.6, 0.5, 8),
+    new THREE.MeshPhongMaterial({ color: 0x333333 })
+  );
+  cannonBase.position.set(0, 1.8, 3.5);
+  g.add(cannonBase);
+
+  const cannonBarrel = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.2, 0.25, 2.5, 8),
+    new THREE.MeshPhongMaterial({ color: 0x1a1a1a })
+  );
+  cannonBarrel.rotation.x = Math.PI / 2;
+  cannonBarrel.position.set(0, 2.1, 4.8);
+  cannonBarrel.name = 'cannon';
+  g.add(cannonBarrel);
+
+  return g;
 }
 
-function createShipMesh(isMe) {
-  const group = new THREE.Group();
+function createCharacter(isMe) {
+  const g = new THREE.Group();
 
-  // Hull
-  const hullShape = new THREE.Shape();
-  hullShape.moveTo(0, -6);
-  hullShape.quadraticCurveTo(4, -4, 4, 0);
-  hullShape.quadraticCurveTo(4, 4, 2, 6);
-  hullShape.lineTo(-2, 6);
-  hullShape.quadraticCurveTo(-4, 4, -4, 0);
-  hullShape.quadraticCurveTo(-4, -4, 0, -6);
-
-  const hull = new THREE.Mesh(
-    new THREE.ExtrudeGeometry(hullShape, { depth: 3, bevelEnabled: true, bevelSize: 0.5, bevelThickness: 0.3 }),
-    new THREE.MeshPhongMaterial({ color: isMe ? 0x8B4513 : 0x6B3410 })
+  // Body
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1.8, 0.8),
+    new THREE.MeshPhongMaterial({ color: isMe ? 0x2e86c1 : 0xc0392b })
   );
-  hull.rotation.x = -Math.PI / 2;
-  hull.position.y = 1;
-  group.add(hull);
+  body.position.y = 2.5;
+  g.add(body);
 
-  // Deck
-  group.add(Object.assign(new THREE.Mesh(
-    new THREE.BoxGeometry(6, 0.3, 10),
-    new THREE.MeshPhongMaterial({ color: 0xDEB887 })
-  ), { position: new THREE.Vector3(0, 3.2, 0) }));
-
-  // Mast
-  group.add(Object.assign(new THREE.Mesh(
-    new THREE.CylinderGeometry(0.2, 0.3, 12, 8),
-    new THREE.MeshPhongMaterial({ color: 0x654321 })
-  ), { position: new THREE.Vector3(0, 9, 0) }));
-
-  // Sail
-  const sail = new THREE.Mesh(
-    new THREE.PlaneGeometry(5, 7),
-    new THREE.MeshPhongMaterial({ color: isMe ? 0xfff5e6 : 0xeee5d6, side: THREE.DoubleSide, transparent: true, opacity: 0.9 })
+  // Head
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.45, 8, 8),
+    new THREE.MeshPhongMaterial({ color: 0xf0c090 })
   );
-  sail.position.set(0, 10, 0.5);
-  sail.name = 'sail';
-  group.add(sail);
+  head.position.y = 3.8;
+  g.add(head);
 
-  // Flag
-  group.add(Object.assign(new THREE.Mesh(
-    new THREE.PlaneGeometry(2, 1.2),
-    new THREE.MeshPhongMaterial({ color: isMe ? 0x2ecc71 : 0xe74c3c, side: THREE.DoubleSide })
-  ), { position: new THREE.Vector3(0, 15, 0) }));
+  // Hat
+  const hat = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.5, 0.5, 8),
+    new THREE.MeshPhongMaterial({ color: 0x1a1a1a })
+  );
+  hat.position.y = 4.3;
+  g.add(hat);
 
-  // Cannons
-  for (const side of [-1, 1]) {
-    for (let i = -1; i <= 1; i++) {
-      const c = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.2, 0.3, 1.5, 6),
-        new THREE.MeshPhongMaterial({ color: 0x222222 })
-      );
-      c.rotation.z = side * Math.PI / 2;
-      c.position.set(side * 3.5, 3, i * 2.5);
-      group.add(c);
-    }
+  // Legs
+  for (const side of [-0.25, 0.25]) {
+    const leg = new THREE.Mesh(
+      new THREE.BoxGeometry(0.35, 1.2, 0.4),
+      new THREE.MeshPhongMaterial({ color: 0x4a3520 })
+    );
+    leg.position.set(side, 1.0, 0);
+    leg.name = side < 0 ? 'legL' : 'legR';
+    g.add(leg);
   }
 
-  return group;
+  // Arms
+  for (const side of [-0.7, 0.7]) {
+    const arm = new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 1.2, 0.3),
+      new THREE.MeshPhongMaterial({ color: isMe ? 0x2471a3 : 0xa93226 })
+    );
+    arm.position.set(side, 2.5, 0);
+    arm.name = side < 0 ? 'armL' : 'armR';
+    g.add(arm);
+  }
+
+  return g;
 }
 
 function createNameSprite(name, isMe) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 256; canvas.height = 64;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = isMe ? 'rgba(46,204,113,0.6)' : 'rgba(0,0,0,0.5)';
-  ctx.beginPath();
-  ctx.roundRect(10, 10, 236, 44, 8);
-  ctx.fill();
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 48;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = isMe ? 'rgba(46,134,193,.7)' : 'rgba(0,0,0,.5)';
+  ctx.beginPath(); ctx.roundRect(4, 4, 248, 40, 6); ctx.fill();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px sans-serif';
+  ctx.font = 'bold 20px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(name, 128, 40);
+  ctx.fillText(name, 128, 32);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true }));
+  s.scale.set(12, 3, 1);
+  return s;
+}
 
-  const sprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true })
+function createIsland(data) {
+  const g = new THREE.Group();
+
+  // Main land mass
+  const land = new THREE.Mesh(
+    new THREE.CylinderGeometry(data.radius * 0.9, data.radius, 3, 24),
+    new THREE.MeshPhongMaterial({ color: 0x4a8a3a, flatShading: true })
   );
-  sprite.scale.set(16, 4, 1);
-  sprite.position.y = 18;
-  return sprite;
+  land.position.y = 1.5;
+  g.add(land);
+
+  // Sandy beach ring
+  const sand = new THREE.Mesh(
+    new THREE.CylinderGeometry(data.radius, data.radius + 8, 1.5, 24),
+    new THREE.MeshPhongMaterial({ color: 0xf0d9a0 })
+  );
+  sand.position.y = 0.5;
+  g.add(sand);
+
+  // Hills
+  for (let i = 0; i < 2 + Math.floor(Math.random() * 2); i++) {
+    const r = data.radius * (0.2 + Math.random() * 0.3);
+    const hill = new THREE.Mesh(
+      new THREE.SphereGeometry(r, 10, 8),
+      new THREE.MeshPhongMaterial({ color: 0x3d7a30, flatShading: true })
+    );
+    const a = Math.random() * Math.PI * 2;
+    const d = Math.random() * data.radius * 0.4;
+    hill.position.set(Math.cos(a) * d, r * 0.4 + 2, Math.sin(a) * d);
+    hill.scale.y = 0.5;
+    g.add(hill);
+  }
+
+  // Palm trees
+  const numTrees = 3 + Math.floor(data.radius / 15);
+  for (let i = 0; i < numTrees; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const d = Math.random() * data.radius * 0.7;
+    const palm = createPalmTree();
+    palm.position.set(Math.cos(a) * d, 2.5, Math.sin(a) * d);
+    palm.scale.setScalar(0.6 + Math.random() * 0.5);
+    g.add(palm);
+  }
+
+  g.position.set(data.x, 0, data.z);
+  scene.add(g);
+}
+
+function createPalmTree() {
+  const g = new THREE.Group();
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.4, 7, 6),
+    new THREE.MeshPhongMaterial({ color: 0x8B6914 })
+  );
+  trunk.position.y = 3.5;
+  trunk.rotation.z = (Math.random() - 0.5) * 0.25;
+  g.add(trunk);
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    const leaf = new THREE.Mesh(
+      new THREE.ConeGeometry(2, 3.5, 4),
+      new THREE.MeshPhongMaterial({ color: 0x228B22, flatShading: true })
+    );
+    leaf.position.set(Math.cos(a) * 1.2, 7, Math.sin(a) * 1.2);
+    leaf.rotation.set(Math.sin(a) * 0.7, 0, Math.cos(a) * 0.7);
+    g.add(leaf);
+  }
+  return g;
+}
+
+// ── ENTITY MANAGEMENT ──
+function getEntity(id) {
+  if (!entityGroups[id]) {
+    const isMe = id === myId;
+    const boat = createRowboat();
+    const char = createCharacter(isMe);
+    const nameTag = createNameSprite('...', isMe);
+    nameTag.position.y = 6;
+
+    scene.add(boat);
+    scene.add(char);
+
+    entityGroups[id] = {
+      boat, char, nameTag,
+      lastName: '', nameAttachedTo: null,
+      boatTarget: { x: 0, z: 0, rot: 0 },
+      charTarget: { x: 0, z: 0, rot: 0 },
+    };
+  }
+  return entityGroups[id];
+}
+
+function removeEntity(id) {
+  const e = entityGroups[id];
+  if (!e) return;
+  scene.remove(e.boat);
+  scene.remove(e.char);
+  if (e.nameTag.parent) e.nameTag.parent.remove(e.nameTag);
+  delete entityGroups[id];
 }
 
 // ── SOCKET ──
 function connectSocket() {
   const statusEl = document.getElementById('connection-status');
+  socket = io({ reconnection: true, reconnectionDelay: 1000, transports: ['websocket', 'polling'] });
 
-  socket = io({
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionAttempts: Infinity,
-    transports: ['websocket', 'polling'],
-  });
-
-  socket.on('connect', () => {
-    console.log('Connected:', socket.id);
-    statusEl.className = 'connected';
-  });
-
-  socket.on('disconnect', (reason) => {
-    console.log('Disconnected:', reason);
-    statusEl.textContent = 'Disconnected - Reconnecting...';
-    statusEl.className = 'disconnected';
-    // Clear all keys on disconnect
+  socket.on('connect', () => { statusEl.style.display = 'none'; });
+  socket.on('disconnect', () => {
+    statusEl.textContent = 'Reconnecting...';
+    statusEl.style.display = 'block';
+    statusEl.style.color = '#f1c40f';
     keys = {};
   });
 
-  socket.on('reconnect_attempt', () => {
-    statusEl.textContent = 'Reconnecting...';
-    statusEl.className = 'connecting';
-  });
-
   socket.on('init', (data) => {
-    console.log('Init received, myId:', data.id);
     const oldId = myId;
     myId = data.id;
     mapSize = data.mapSize;
-
-    // Build islands only once
     if (islandsData.length === 0) {
       islandsData = data.islands;
       for (const isl of data.islands) createIsland(isl);
     }
-
-    // If we had an old ship mesh from previous connection, remove it
-    if (oldId && oldId !== myId && shipMeshes[oldId]) {
-      scene.remove(shipMeshes[oldId]);
-      delete shipMeshes[oldId];
-    }
-
-    // Re-send name after reconnect
+    if (oldId && oldId !== myId) removeEntity(oldId);
     socket.emit('setName', playerName);
-    statusEl.className = 'connected';
   });
 
-  socket.on('playerLeft', (id) => {
-    if (shipMeshes[id]) {
-      scene.remove(shipMeshes[id]);
-      delete shipMeshes[id];
-    }
-  });
-
-  socket.on('state', (state) => {
-    gameState = state;
-  });
-
+  socket.on('playerLeft', removeEntity);
+  socket.on('state', (s) => { gameState = s; });
   socket.on('sunk', (data) => {
     const ds = document.getElementById('death-screen');
     document.getElementById('death-msg').textContent = `Sunk by ${data.by}!`;
@@ -466,28 +438,13 @@ function connectSocket() {
     setTimeout(() => ds.style.display = 'none', 2500);
   });
 
-  // Heartbeat to keep connection alive
-  setInterval(() => {
-    if (socket?.connected) socket.emit('heartbeat');
-  }, 5000);
-}
-
-function getOrCreateShip(id) {
-  if (!shipMeshes[id]) {
-    const isMe = id === myId;
-    const mesh = createShipMesh(isMe);
-    scene.add(mesh);
-    shipMeshes[id] = mesh;
-    mesh.userData = { nameSprite: null, lastName: '' };
-  }
-  return shipMeshes[id];
+  setInterval(() => { if (socket?.connected) socket.emit('heartbeat'); }, 5000);
 }
 
 // ── CANNONBALL POOL ──
-const cbGeo = new THREE.SphereGeometry(0.5, 8, 8);
-const cbMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
-
-function getCannonballMesh(i) {
+const cbGeo = new THREE.SphereGeometry(0.4, 8, 6);
+const cbMat = new THREE.MeshPhongMaterial({ color: 0x1a1a1a });
+function getCBMesh(i) {
   while (cannonballMeshes.length <= i) {
     const m = new THREE.Mesh(cbGeo, cbMat);
     m.visible = false;
@@ -497,12 +454,12 @@ function getCannonballMesh(i) {
   return cannonballMeshes[i];
 }
 
-// ── GAME LOOP ──
+// ── ANIMATE ──
 function animate() {
   requestAnimationFrame(animate);
   const time = clock.getElapsedTime();
 
-  // Send input ONLY if connected
+  // Send input
   if (socket?.connected && myId) {
     socket.volatile.emit('input', {
       forward: !!(keys['KeyW'] || keys['ArrowUp']),
@@ -510,71 +467,156 @@ function animate() {
       left: !!(keys['KeyA'] || keys['ArrowLeft']),
       right: !!(keys['KeyD'] || keys['ArrowRight']),
       fire: !!keys['Space'],
+      action: !!keys['KeyE'],
     });
   }
 
-  animateWater(time);
+  // Water animation
+  const wp = waterMesh.geometry.attributes.position;
+  for (let i = 0; i < wp.count; i++) {
+    const x = wp.getX(i), y = wp.getY(i);
+    wp.setZ(i,
+      Math.sin(x * 0.025 + time * 1.3) * 0.7 +
+      Math.sin(y * 0.03 + time) * 0.5 +
+      Math.sin((x + y) * 0.015 + time * 0.7) * 0.9
+    );
+  }
+  wp.needsUpdate = true;
+  waterMesh.geometry.computeVertexNormals();
 
-  // Update ship meshes
-  const activePlayers = new Set();
+  // Update entities
+  const active = new Set();
   for (const id in gameState.players) {
-    activePlayers.add(id);
+    active.add(id);
     const p = gameState.players[id];
-    const ship = getOrCreateShip(id);
-
-    ship.position.x += (p.x - ship.position.x) * 0.15;
-    ship.position.z += (p.z - ship.position.z) * 0.15;
-    ship.position.y = Math.sin(time * 2 + p.x * 0.1) * 0.5;
-
-    let diff = p.rotation - ship.rotation.y;
-    while (diff > Math.PI) diff -= Math.PI * 2;
-    while (diff < -Math.PI) diff += Math.PI * 2;
-    ship.rotation.y += diff * 0.15;
-    ship.rotation.z = -diff * 0.3;
-
-    const sail = ship.getObjectByName('sail');
-    if (sail) {
-      sail.scale.y += ([0.2, 0.6, 1.0][p.sails || 1] - sail.scale.y) * 0.1;
-      sail.position.z = 0.5 + Math.sin(time * 3) * 0.3 * (p.sails || 1);
-    }
-
-    // Name sprite
+    const e = getEntity(id);
     const isMe = id === myId;
-    if (!ship.userData.nameSprite || ship.userData.lastName !== p.name) {
-      if (ship.userData.nameSprite) ship.remove(ship.userData.nameSprite);
-      ship.userData.nameSprite = createNameSprite(p.name, isMe);
-      ship.add(ship.userData.nameSprite);
-      ship.userData.lastName = p.name;
+
+    // Smooth boat position
+    e.boat.position.x += (p.bx - e.boat.position.x) * 0.15;
+    e.boat.position.z += (p.bz - e.boat.position.z) * 0.15;
+    e.boat.position.y = Math.sin(time * 2 + p.bx * 0.08) * 0.4 + 0.5;
+
+    // Boat rotation (smooth)
+    let bd = p.bRotation - e.boat.rotation.y;
+    while (bd > Math.PI) bd -= Math.PI * 2;
+    while (bd < -Math.PI) bd += Math.PI * 2;
+    e.boat.rotation.y += bd * 0.15;
+    e.boat.rotation.z = -bd * 0.25; // tilt
+    e.boat.rotation.x = Math.sin(time * 1.5 + p.bx * 0.1) * 0.03; // rock
+
+    // Sail
+    const sail = e.boat.getObjectByName('sail');
+    if (sail) {
+      const ts = [0.1, 0.5, 1.0][p.sails || 1];
+      sail.scale.y += (ts - sail.scale.y) * 0.1;
+      sail.position.z = -0.3 + Math.sin(time * 2.5) * 0.2 * (p.sails || 1);
     }
+
+    // Character position
+    if (p.onBoat) {
+      // Character rides on boat, near the cannon
+      e.char.position.copy(e.boat.position);
+      e.char.position.x += Math.sin(e.boat.rotation.y) * 2;
+      e.char.position.z += Math.cos(e.boat.rotation.y) * 2;
+      e.char.position.y = e.boat.position.y + 1;
+      e.char.rotation.y = e.boat.rotation.y;
+    } else {
+      // On land or swimming
+      e.char.position.x += (p.cx - e.char.position.x) * 0.2;
+      e.char.position.z += (p.cz - e.char.position.z) * 0.2;
+
+      let cd = p.cRotation - e.char.rotation.y;
+      while (cd > Math.PI) cd -= Math.PI * 2;
+      while (cd < -Math.PI) cd += Math.PI * 2;
+      e.char.rotation.y += cd * 0.2;
+
+      if (p.swimming) {
+        e.char.position.y = Math.sin(time * 3) * 0.2 - 0.3;
+      } else {
+        e.char.position.y = 2.5; // on land (island is raised)
+      }
+
+      // Walk animation
+      const legL = e.char.getObjectByName('legL');
+      const legR = e.char.getObjectByName('legR');
+      const armL = e.char.getObjectByName('armL');
+      const armR = e.char.getObjectByName('armR');
+      const isMoving = p.cx !== e.charTarget.x || p.cz !== e.charTarget.z;
+      if (legL && legR) {
+        const swing = Math.sin(time * 8) * 0.4;
+        legL.rotation.x = swing;
+        legR.rotation.x = -swing;
+        if (armL) armL.rotation.x = -swing;
+        if (armR) armR.rotation.x = swing;
+      }
+      e.charTarget.x = p.cx;
+      e.charTarget.z = p.cz;
+    }
+
+    // Name tag
+    if (e.lastName !== p.name) {
+      if (e.nameTag.parent) e.nameTag.parent.remove(e.nameTag);
+      e.nameTag = createNameSprite(p.name, isMe);
+      e.nameTag.position.y = 6;
+      e.lastName = p.name;
+    }
+    // Attach name to character
+    if (!e.nameTag.parent || e.nameAttachedTo !== (p.onBoat ? 'boat' : 'char')) {
+      if (e.nameTag.parent) e.nameTag.parent.remove(e.nameTag);
+      if (p.onBoat) {
+        e.nameTag.position.y = 10;
+        e.boat.add(e.nameTag);
+      } else {
+        e.nameTag.position.y = 6;
+        e.char.add(e.nameTag);
+      }
+      e.nameAttachedTo = p.onBoat ? 'boat' : 'char';
+    }
+
+    // Hide/show boat marker for on-foot players (boat stays visible)
+    e.boat.visible = true;
+    e.char.visible = true;
   }
 
-  // Remove ships no longer in state
-  for (const id in shipMeshes) {
-    if (!activePlayers.has(id)) {
-      scene.remove(shipMeshes[id]);
-      delete shipMeshes[id];
-    }
+  // Remove old entities
+  for (const id in entityGroups) {
+    if (!active.has(id)) removeEntity(id);
   }
 
   // Cannonballs
   const cbs = gameState.cannonballs || [];
   for (let i = 0; i < cbs.length; i++) {
-    const m = getCannonballMesh(i);
+    const m = getCBMesh(i);
     m.visible = true;
     m.position.set(cbs[i].x, cbs[i].y, cbs[i].z);
   }
   for (let i = cbs.length; i < cannonballMeshes.length; i++) cannonballMeshes[i].visible = false;
 
-  // Camera - ONLY follow my ship
-  if (myId && shipMeshes[myId]) {
-    const ship = shipMeshes[myId];
-    const camDist = 55, camHeight = 35;
-    const tx = ship.position.x - Math.sin(ship.rotation.y) * camDist;
-    const tz = ship.position.z - Math.cos(ship.rotation.y) * camDist;
-    camera.position.x += (tx - camera.position.x) * 0.05;
-    camera.position.z += (tz - camera.position.z) * 0.05;
-    camera.position.y += (camHeight - camera.position.y) * 0.05;
-    camera.lookAt(ship.position.x, 5, ship.position.z);
+  // Camera
+  const me = gameState.players[myId];
+  if (me && entityGroups[myId]) {
+    const e = entityGroups[myId];
+    let target, rot, camDist, camHeight;
+
+    if (me.onBoat) {
+      target = e.boat.position;
+      rot = e.boat.rotation.y;
+      camDist = 40;
+      camHeight = 22;
+    } else {
+      target = e.char.position;
+      rot = e.char.rotation.y;
+      camDist = 25;
+      camHeight = 15;
+    }
+
+    const tx = target.x - Math.sin(rot) * camDist;
+    const tz = target.z - Math.cos(rot) * camDist;
+    camera.position.x += (tx - camera.position.x) * 0.06;
+    camera.position.z += (tz - camera.position.z) * 0.06;
+    camera.position.y += (target.y + camHeight - camera.position.y) * 0.06;
+    camera.lookAt(target.x, target.y + 3, target.z);
   }
 
   updateHUD();
@@ -582,6 +624,7 @@ function animate() {
   renderer.render(scene, camera);
 }
 
+// ── HUD ──
 function updateHUD() {
   const me = gameState.players[myId];
   if (!me) return;
@@ -590,49 +633,107 @@ function updateHUD() {
   document.getElementById('health-bar').style.width = (hpPct * 100) + '%';
   document.getElementById('health-text').textContent = Math.max(0, me.hp) + ' HP';
 
-  const sailNames = ['Furled (stopped)', 'Half Sail', 'Full Sail'];
-  document.getElementById('sails-indicator').textContent = sailNames[me.sails || 1];
+  const sailNames = ['Stopped', 'Half Sail', 'Full Sail'];
+  const sailEl = document.getElementById('sails-indicator');
+  if (me.onBoat) {
+    sailEl.style.display = 'block';
+    sailEl.textContent = sailNames[me.sails || 1];
+  } else {
+    sailEl.style.display = 'none';
+  }
 
-  const playerCount = Object.keys(gameState.players).length;
-  document.getElementById('player-count').textContent = `${playerCount} player${playerCount !== 1 ? 's' : ''} online`;
+  // State label
+  const stateEl = document.getElementById('state-label');
+  if (me.onBoat) stateEl.textContent = 'On boat';
+  else if (me.swimming) stateEl.textContent = 'Swimming!';
+  else stateEl.textContent = 'On land';
 
-  const list = document.getElementById('score-list');
+  // Action prompt
+  const actionEl = document.getElementById('action-prompt');
+  // Check if near shore when on boat
+  if (me.onBoat) {
+    let nearIsland = false;
+    for (const isl of islandsData) {
+      const dx = me.bx - isl.x, dz = me.bz - isl.z;
+      if (Math.sqrt(dx * dx + dz * dz) < isl.radius + 12) { nearIsland = true; break; }
+    }
+    actionEl.style.display = nearIsland ? 'block' : 'none';
+    actionEl.textContent = nearIsland ? 'Press E to disembark' : '';
+  } else if (!me.swimming) {
+    const dx = me.cx - me.bx, dz = me.cz - me.bz;
+    const nearBoat = dx * dx + dz * dz < 225;
+    actionEl.style.display = nearBoat ? 'block' : 'none';
+    actionEl.textContent = nearBoat ? 'Press E to board ship' : '';
+  } else {
+    actionEl.style.display = 'none';
+  }
+
+  // Drown bar
+  const drownEl = document.getElementById('drown-bar-wrap');
+  if (me.swimming) {
+    drownEl.style.display = 'block';
+    // We don't have exact swimStart on client, estimate from state
+    // Just show it pulsing to indicate danger
+    const pulse = (Math.sin(Date.now() * 0.005) + 1) / 2;
+    document.getElementById('drown-bar').style.width = (pulse * 100) + '%';
+    document.getElementById('drown-bar').style.background = '#e74c3c';
+  } else {
+    drownEl.style.display = 'none';
+  }
+
+  // Player count
+  const pc = Object.keys(gameState.players).length;
+  document.getElementById('player-count').textContent = `${pc} player${pc !== 1 ? 's' : ''} online`;
+
+  // Scoreboard
   const sorted = Object.entries(gameState.players).sort((a, b) => b[1].score - a[1].score).slice(0, 10);
-  list.innerHTML = sorted.map(([id, p]) =>
-    `<div class="score-row ${id === myId ? 'me' : ''}"><span>${p.name}</span><span>${p.score}</span></div>`
+  document.getElementById('score-list').innerHTML = sorted.map(([id, p]) =>
+    `<div class="sr${id === myId ? ' me' : ''}"><span>${p.name}</span><span>${p.score}</span></div>`
   ).join('');
 }
 
+// ── MINIMAP ──
 function drawMinimap() {
-  const ctx = minimapCtx;
-  const w = 180, h = 180, scale = w / mapSize;
+  const ctx = mmCtx;
+  const w = 170, h = 170, s = w / mapSize;
 
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = 'rgba(10, 40, 80, 0.9)';
+  ctx.fillStyle = 'rgba(10,40,80,.9)';
   ctx.beginPath(); ctx.arc(w/2, h/2, w/2, 0, Math.PI * 2); ctx.fill();
 
-  ctx.fillStyle = '#5a8a4e';
+  // Islands
+  ctx.fillStyle = '#4a8a3a';
   for (const isl of islandsData) {
     ctx.beginPath();
-    ctx.arc(w/2 + isl.x * scale, h/2 + isl.z * scale, Math.max(3, isl.radius * scale), 0, Math.PI * 2);
+    ctx.arc(w/2 + isl.x * s, h/2 + isl.z * s, Math.max(4, isl.radius * s), 0, Math.PI * 2);
     ctx.fill();
   }
 
+  // Players
   for (const id in gameState.players) {
     const p = gameState.players[id];
-    const px = w/2 + p.x * scale, py = h/2 + p.z * scale;
     const isMe = id === myId;
+    // Show boat position
+    const px = w/2 + p.bx * s, py = h/2 + p.bz * s;
     ctx.fillStyle = isMe ? '#2ecc71' : '#e74c3c';
     ctx.beginPath(); ctx.arc(px, py, isMe ? 4 : 3, 0, Math.PI * 2); ctx.fill();
+    // Direction for me
     if (isMe) {
+      const rot = p.onBoat ? p.bRotation : p.cRotation;
       ctx.strokeStyle = '#2ecc71'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(px, py);
-      ctx.lineTo(px + Math.sin(p.rotation) * 8, py + Math.cos(p.rotation) * 8);
+      ctx.lineTo(px + Math.sin(rot) * 8, py + Math.cos(rot) * 8);
       ctx.stroke();
+      // If off boat, show character position too
+      if (!p.onBoat) {
+        const cx = w/2 + p.cx * s, cz = h/2 + p.cz * s;
+        ctx.fillStyle = '#f1c40f';
+        ctx.beginPath(); ctx.arc(cx, cz, 3, 0, Math.PI * 2); ctx.fill();
+      }
     }
   }
 
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(w/2, h/2, w/2 - 1, 0, Math.PI * 2); ctx.stroke();
 }
 </script>
