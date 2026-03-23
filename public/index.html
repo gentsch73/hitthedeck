@@ -6,556 +6,529 @@
 <title>Krew3D</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{overflow:hidden;background:#000;font-family:'Segoe UI',sans-serif;user-select:none;cursor:crosshair}
+body{overflow:hidden;background:#0a4a6e;font-family:'Segoe UI',sans-serif;user-select:none}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:300;display:flex;justify-content:center;align-items:center;flex-direction:column;color:#fff}
+#overlay h2{color:#f1c40f;font-size:28px;margin-bottom:6px}
+#overlay .sub{opacity:.5;font-size:12px;margin-bottom:18px}
+#overlay input{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 14px;border-radius:8px;font-size:15px;outline:none;width:200px;text-align:center;margin-bottom:10px}
+#overlay input::placeholder{color:rgba(255,255,255,.3)}
+#overlay button{padding:10px 30px;background:#f1c40f;color:#000;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer}
+#overlay button:hover{background:#f39c12}
+#overlay button:disabled{background:#555;color:#999;cursor:default}
+#conn-msg{color:#f1c40f;font-size:13px;margin-bottom:12px}
 
-#info-panel{position:fixed;top:10px;left:10px;background:rgba(0,0,0,.55);color:#fff;padding:8px 12px;border-radius:8px;font-size:10px;border:1px solid rgba(255,255,255,.1);line-height:1.7;z-index:10;display:none}
-#info-panel kbd{background:rgba(255,255,255,.12);padding:1px 4px;border-radius:3px;font-size:9px}
-
-#gold-display{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#f1c40f;font-size:14px;font-weight:bold;padding:5px 18px;border-radius:8px;z-index:10;display:none;border:1px solid rgba(241,196,15,.3)}
-
-#health-wrap{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);width:260px;height:20px;background:rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.2);border-radius:10px;overflow:hidden;z-index:10;display:none}
-#health-bar{height:100%;width:100%;background:#2ecc71;transition:width .3s;border-radius:10px}
-#health-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-weight:bold;font-size:11px;text-shadow:1px 1px 2px #000}
-
-#sails-ind{position:fixed;bottom:52px;left:50%;transform:translateX(-50%);color:#fff;font-size:11px;z-index:10;display:none;background:rgba(0,0,0,.4);padding:2px 10px;border-radius:6px}
-
-#action-prompt{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);color:#f1c40f;font-size:14px;font-weight:bold;z-index:10;display:none;background:rgba(0,0,0,.6);padding:6px 16px;border-radius:8px}
-
-#minimap{position:fixed;bottom:15px;right:15px;width:200px;height:200px;background:rgba(10,30,60,.85);border:2px solid rgba(255,255,255,.2);border-radius:8px;z-index:10;display:none;cursor:pointer}
-#tp-hint{position:fixed;bottom:220px;right:15px;color:rgba(255,255,255,.35);font-size:9px;z-index:10;display:none;width:200px;text-align:center}
-
-#score-board{position:fixed;top:10px;right:10px;background:rgba(0,0,0,.5);color:#fff;padding:8px 14px;border-radius:8px;font-size:11px;z-index:10;display:none;border:1px solid rgba(255,255,255,.1);max-height:200px}
-#score-board h3{margin-bottom:4px;color:#f1c40f;font-size:12px}
+/* HUD */
+.hud{position:fixed;z-index:10}
+#ctrl{top:10px;left:10px;background:rgba(0,0,0,.55);color:#fff;padding:8px 12px;border-radius:8px;font-size:10px;border:1px solid rgba(255,255,255,.1);line-height:1.7;display:none}
+#ctrl kbd{background:rgba(255,255,255,.12);padding:1px 4px;border-radius:3px;font-size:9px}
+#gold{top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#f1c40f;font-size:14px;font-weight:bold;padding:5px 18px;border-radius:8px;display:none;border:1px solid rgba(241,196,15,.3)}
+#hp-wrap{bottom:25px;left:50%;transform:translateX(-50%);width:260px;height:20px;background:rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.2);border-radius:10px;overflow:hidden;display:none}
+#hp-bar{height:100%;width:100%;background:linear-gradient(90deg,#e74c3c,#f1c40f 50%,#2ecc71);transition:width .3s;border-radius:10px}
+#hp-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-weight:bold;font-size:11px;text-shadow:1px 1px 2px #000}
+#sails{bottom:52px;left:50%;transform:translateX(-50%);color:#fff;font-size:11px;display:none;background:rgba(0,0,0,.4);padding:2px 10px;border-radius:6px}
+#prompt{bottom:85px;left:50%;transform:translateX(-50%);color:#f1c40f;font-size:14px;font-weight:bold;display:none;background:rgba(0,0,0,.6);padding:6px 16px;border-radius:8px}
+#scoreboard{top:10px;right:10px;background:rgba(0,0,0,.5);color:#fff;padding:8px 14px;border-radius:8px;font-size:11px;display:none;border:1px solid rgba(255,255,255,.1);max-height:200px}
+#scoreboard h3{margin-bottom:4px;color:#f1c40f;font-size:12px}
 .sr{display:flex;justify-content:space-between;gap:14px;padding:1px 0}.sr.me{color:#2ecc71;font-weight:bold}
+#lbl{top:72px;left:10px;color:rgba(255,255,255,.5);font-size:10px;display:none;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px}
+#pc{bottom:4px;left:10px;color:rgba(255,255,255,.3);font-size:9px;display:none}
+#minimap{bottom:15px;right:15px;width:200px;height:200px;background:rgba(10,30,60,.85);border:2px solid rgba(255,255,255,.2);border-radius:8px;display:none;cursor:crosshair}
+#tphint{bottom:220px;right:15px;color:rgba(255,255,255,.3);font-size:9px;display:none;text-align:center;width:200px}
+#cross{position:fixed;pointer-events:none;z-index:5;display:none;width:16px;height:16px}
+#cross::before,#cross::after{content:'';position:absolute;background:rgba(255,255,255,.6)}
+#cross::before{width:16px;height:2px;top:7px;left:0}
+#cross::after{width:2px;height:16px;top:0;left:7px}
 
-#state-label{position:fixed;top:80px;left:10px;color:rgba(255,255,255,.5);font-size:10px;z-index:10;display:none;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px}
-#player-count{position:fixed;bottom:4px;left:10px;color:rgba(255,255,255,.35);font-size:9px;z-index:10;display:none}
+#death{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center;z-index:100;flex-direction:column;color:#fff}
+#death h1{font-size:40px;color:#e74c3c}
 
-#conn-status{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#f1c40f;padding:12px 24px;border-radius:8px;font-size:14px;z-index:200;display:none}
-
-#death-screen{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center;z-index:100;flex-direction:column;color:#fff}
-#death-screen h1{font-size:40px;color:#e74c3c;margin-bottom:6px}
-
-#name-wrap{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200;background:rgba(0,0,0,.88);padding:24px 32px;border-radius:12px;text-align:center;color:#fff;border:2px solid rgba(241,196,15,.4)}
-#name-wrap h2{color:#f1c40f;margin-bottom:10px;font-size:24px}
-#name-input{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:8px 12px;border-radius:6px;font-size:14px;outline:none;width:180px;text-align:center}
-#name-input::placeholder{color:rgba(255,255,255,.3)}
-#name-btn{display:block;margin:8px auto 0;padding:8px 24px;background:#f1c40f;color:#000;border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer}
-
+/* Market */
 #market{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:150;display:none;justify-content:center;align-items:center}
-#market-inner{background:rgba(20,20,30,.95);border:2px solid rgba(241,196,15,.4);border-radius:14px;padding:24px 30px;color:#fff;min-width:460px}
-#market-inner h2{color:#f1c40f;margin-bottom:4px;font-size:18px}
-#market-gold{color:#f1c40f;margin-bottom:12px;font-size:13px}
-.ship-card{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;margin-bottom:6px}
-.ship-info h3{font-size:13px;margin-bottom:2px}.ship-info p{font-size:10px;opacity:.6}
-.ship-btn{padding:5px 14px;border:none;border-radius:5px;font-size:11px;font-weight:bold;cursor:pointer;min-width:70px}
-.ship-btn.buy{background:#f1c40f;color:#000}.ship-btn.owned{background:#2ecc71;color:#000}
-.ship-btn.equip{background:#3498db;color:#fff}.ship-btn.equipped{background:#555;color:#aaa;cursor:default}
-#market-close{display:block;margin:10px auto 0;padding:5px 18px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:5px;cursor:pointer;font-size:11px}
-#shop-msg{color:#2ecc71;font-size:11px;text-align:center;margin-top:4px;min-height:14px}
+#market-box{background:rgba(20,20,30,.95);border:2px solid rgba(241,196,15,.4);border-radius:14px;padding:24px 30px;color:#fff;min-width:460px}
+#market-box h2{color:#f1c40f;margin-bottom:4px}
+#mgold{color:#f1c40f;margin-bottom:14px;font-size:13px}
+.sc{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px 16px;margin-bottom:8px}
+.sc:hover{border-color:rgba(241,196,15,.4)}
+.si h3{font-size:14px;margin-bottom:2px}.si p{font-size:11px;opacity:.6}
+.sb{padding:6px 16px;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;min-width:80px}
+.sb.buy{background:#f1c40f;color:#000}.sb.eq{background:#3498db;color:#fff}.sb.on{background:#555;color:#aaa;cursor:default}
+#mclose{display:block;margin:12px auto 0;padding:6px 20px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:6px;cursor:pointer}
+#smsg{color:#2ecc71;font-size:12px;text-align:center;margin-top:6px;min-height:16px}
 </style>
 </head>
 <body>
-<div id="name-wrap">
+
+<!-- OVERLAY (name + connection) -->
+<div id="overlay">
   <h2>KREW 3D</h2>
-  <p style="margin-bottom:10px;opacity:.5;font-size:11px">Enter your pirate name</p>
-  <input id="name-input" type="text" placeholder="Captain..." maxlength="16" autofocus>
-  <button id="name-btn">SET SAIL!</button>
+  <div class="sub">Multiplayer Pirate Battle</div>
+  <div id="conn-msg">Connecting to server...</div>
+  <input id="nin" type="text" placeholder="Your pirate name..." maxlength="16">
+  <button id="nbtn" disabled>Connecting...</button>
 </div>
-<div id="conn-status"></div>
-<div id="info-panel"><strong style="color:#f1c40f">Controls</strong><br><kbd>W</kbd><kbd>S</kbd><kbd>A</kbd><kbd>D</kbd> Move/Turn<br><kbd>Mouse</kbd> Aim · <kbd>Click</kbd> Fire<br><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Sails · <kbd>E</kbd> Board/Leave<br><kbd>Space</kbd> Jump · <kbd>B</kbd> Shop (on land)</div>
-<div id="gold-display"></div>
-<div id="sails-ind"></div>
-<div id="health-wrap"><div id="health-bar"></div><div id="health-text"></div></div>
-<div id="action-prompt"></div>
-<canvas id="minimap" width="200" height="200"></canvas>
-<div id="tp-hint">Click map to teleport</div>
-<div id="score-board"><h3>Scoreboard</h3><div id="score-list"></div></div>
-<div id="state-label"></div>
-<div id="player-count"></div>
-<div id="death-screen"><h1>SUNK!</h1><p id="death-msg"></p><p style="margin-top:10px;opacity:.4;font-size:12px">Respawning...</p></div>
-<div id="market"><div id="market-inner"><h2>Ship Market</h2><div id="market-gold"></div><div id="ship-list"></div><div id="shop-msg"></div><button id="market-close">Close [B]</button></div></div>
+
+<!-- HUD (hidden until game starts) -->
+<div id="ctrl" class="hud"><strong style="color:#f1c40f">Controls</strong><br><kbd>W</kbd><kbd>S</kbd><kbd>A</kbd><kbd>D</kbd> Move<br><kbd>Mouse</kbd> Aim · <kbd>Click</kbd> Fire<br><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Sails · <kbd>E</kbd> Board/Leave<br><kbd>Space</kbd> Jump · <kbd>B</kbd> Shop</div>
+<div id="gold" class="hud"></div>
+<div id="hp-wrap" class="hud"><div id="hp-bar"></div><div id="hp-text"></div></div>
+<div id="sails" class="hud"></div>
+<div id="prompt" class="hud"></div>
+<div id="scoreboard" class="hud"><h3>Scoreboard</h3><div id="slist"></div></div>
+<div id="lbl" class="hud"></div>
+<div id="pc" class="hud"></div>
+<canvas id="minimap" class="hud" width="200" height="200"></canvas>
+<div id="tphint" class="hud">Click map to teleport</div>
+<div id="cross"></div>
+
+<div id="death"><h1>SUNK!</h1><p id="dmsg"></p><p style="margin-top:10px;opacity:.4;font-size:12px">Respawning...</p></div>
+
+<div id="market"><div id="market-box">
+  <h2>Ship Market</h2><div id="mgold"></div><div id="slist2"></div>
+  <div id="smsg"></div><button id="mclose">Close [B]</button>
+</div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-/* ── GLOBALS ── */
-let socket,scene,camera,renderer,clock;
-let myId=null,mapSize=1600,islandsData=[],obstaclesData=[],shipDefs={};
-let waterMesh,aimMarker,landingDots=[];
-let ents={},cbPool=[];
-let gs={players:{},cannonballs:[]};
-let keys={},mouseX=window.innerWidth/2,mouseY=window.innerHeight/2,mWorld={x:0,z:0};
-let started=false,pName='Pirate',marketOpen=false;
-let myGold=5000,myOwned=['rowboat'],myShipType='rowboat';
-let spawnData=null; // set from init
-let sceneReady=false;
+// ═══ GLOBALS ═══
+let socket, scene, camera, renderer, clock;
+let myId=null, MAP=1600, ISL=[], ROCKS=[], SHIPDEFS={};
+let water, aimRing, dots=[];
+let ents={}, cbPool=[];
+let GS={players:{},cbs:[]};
+let keys={}, mX=0, mY=0, mW={x:0,z:0};
+let playing=false, mktOpen=false;
+let myGold=5000, myOwned=['rowboat'], myShip='rowboat';
 
-const ray=new THREE.Raycaster();
-const m2=new THREE.Vector2();
-const wPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
-const mmCtx=document.getElementById('minimap').getContext('2d');
+const ray=new THREE.Raycaster(), mv=new THREE.Vector2(), wP=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+const mmC=document.getElementById('minimap'), mmX=mmC.getContext('2d');
 
-/* ── START ── */
-document.getElementById('name-btn').onclick=go;
-document.getElementById('name-input').onkeydown=e=>{if(e.key==='Enter')go()};
-function go(){
-  pName=document.getElementById('name-input').value.trim()||'Pirate';
-  document.getElementById('name-wrap').style.display='none';
-  ['info-panel','health-wrap','score-board','sails-ind','minimap','player-count','state-label','gold-display','tp-hint'].forEach(i=>document.getElementById(i).style.display='block');
-  started=true;
-  initThree();
-  initSocket();
-  tick();
+// ═══ STEP 1: CONNECT SOCKET IMMEDIATELY ═══
+(function boot(){
+  console.log('Booting...');
+  socket = io({ reconnection:true, reconnectionDelay:1000, transports:['polling','websocket'] });
+
+  socket.on('connect', () => {
+    console.log('Socket connected:', socket.id);
+    document.getElementById('conn-msg').textContent = 'Connected! Enter your name:';
+    document.getElementById('nbtn').disabled = false;
+    document.getElementById('nbtn').textContent = 'SET SAIL!';
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Disconnected');
+    if (!playing) {
+      document.getElementById('conn-msg').textContent = 'Disconnected. Reconnecting...';
+      document.getElementById('nbtn').disabled = true;
+      document.getElementById('nbtn').textContent = 'Reconnecting...';
+    }
+  });
+
+  socket.on('init', data => {
+    console.log('Init received:', data.id, 'players:', Object.keys(data.state.players).length);
+    const oldId = myId;
+    myId = data.id;
+    MAP = data.map;
+    SHIPDEFS = data.ships || {};
+
+    // Apply initial state
+    GS = data.state;
+
+    // Build world (only first time)
+    if (!ISL.length && data.islands) {
+      ISL = data.islands;
+      ROCKS = data.rocks || [];
+      for (const i of ISL) buildIsland(i);
+      buildRocks();
+    }
+
+    // Remove old entity if reconnected
+    if (oldId && oldId !== myId) rmEnt(oldId);
+
+    // Position camera to spawn
+    if (data.spawnX !== undefined) {
+      const r = data.spawnR || 0;
+      camera.position.set(data.spawnX - Math.sin(r)*45, 25, data.spawnZ - Math.cos(r)*45);
+      camera.lookAt(data.spawnX, 3, data.spawnZ);
+    }
+
+    // Re-send name if already playing
+    if (playing) socket.emit('setName', document.getElementById('nin').value.trim() || 'Pirate');
+  });
+
+  socket.on('s', s => { GS = s; });
+  socket.on('left', rmEnt);
+  socket.on('sunk', d => {
+    document.getElementById('dmsg').textContent = `Sunk by ${d.by}!`;
+    document.getElementById('death').style.display = 'flex';
+    setTimeout(() => document.getElementById('death').style.display = 'none', 2500);
+  });
+  socket.on('msg', m => { document.getElementById('smsg').textContent = m; });
+  socket.on('upd', d => {
+    if (d.gold !== undefined) myGold = d.gold;
+    if (d.owned) myOwned = d.owned;
+    if (d.ship) myShip = d.ship;
+    if (mktOpen) renderMarket();
+  });
+})();
+
+// ═══ STEP 2: START GAME ON BUTTON CLICK ═══
+document.getElementById('nbtn').onclick = startGame;
+document.getElementById('nin').onkeydown = e => { if (e.key === 'Enter' && !document.getElementById('nbtn').disabled) startGame(); };
+
+function startGame() {
+  const name = document.getElementById('nin').value.trim() || 'Pirate';
+  document.getElementById('overlay').style.display = 'none';
+
+  // Show HUD
+  ['ctrl','gold','hp-wrap','sails','scoreboard','minimap','pc','lbl','cross','tphint'].forEach(x => document.getElementById(x).style.display = 'block');
+
+  playing = true;
+  initThree(); // Only creates Three.js scene
+  socket.emit('setName', name);
+  animate();
 }
 
-/* ── THREE SETUP ── */
-function initThree(){
-  scene=new THREE.Scene();
-  scene.background=new THREE.Color(0xadd8f0); // light sky blue
-  scene.fog=new THREE.FogExp2(0x8abbd4,0.0008);
+// ═══ THREE.JS SETUP ═══
+function initThree() {
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x5a9abf, 0.0008);
 
-  camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,1,3000);
-  // Default camera - will be overridden by spawn data
-  camera.position.set(0,40,-60);
-  camera.lookAt(0,0,0);
+  camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 1, 3000);
+  // Camera will be repositioned by init event, but set a safe default
+  camera.position.set(0, 50, 0);
 
-  renderer=new THREE.WebGLRenderer({antialias:true});
-  renderer.setSize(innerWidth,innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.setClearColor(0xadd8f0);
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setClearColor(0x7ec8e3);
   document.body.appendChild(renderer.domElement);
-  clock=new THREE.Clock();
+  clock = new THREE.Clock();
 
-  // Lights
-  scene.add(new THREE.AmbientLight(0xffffff,0.5));
-  const sun=new THREE.DirectionalLight(0xfff5d0,1.0);
-  sun.position.set(400,500,200);scene.add(sun);
-  scene.add(new THREE.HemisphereLight(0xadd8f0,0x3a7a5a,0.3));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+  const sun = new THREE.DirectionalLight(0xfff0d0, 1.1);
+  sun.position.set(400, 500, 200); scene.add(sun);
+  scene.add(new THREE.HemisphereLight(0x87ceeb, 0x3a7a5a, 0.3));
 
-  // Water - DARK blue, high contrast with sky
-  waterMesh=new THREE.Mesh(
-    new THREE.PlaneGeometry(5000,5000,80,80),
-    new THREE.MeshPhongMaterial({color:0x0a4870,transparent:true,opacity:0.92,shininess:70,specular:0x155a80})
+  water = new THREE.Mesh(
+    new THREE.PlaneGeometry(5000, 5000, 60, 60),
+    new THREE.MeshPhongMaterial({ color: 0x0a4a6e, transparent: true, opacity: 0.9, shininess: 60, specular: 0x1a5577 })
   );
-  waterMesh.rotation.x=-Math.PI/2;
-  waterMesh.position.y=0;
-  scene.add(waterMesh);
+  water.rotation.x = -Math.PI / 2;
+  scene.add(water);
 
-  // Aim marker
-  aimMarker=new THREE.Mesh(
-    new THREE.RingGeometry(1.5,2.2,20),
-    new THREE.MeshBasicMaterial({color:0xff3333,transparent:true,opacity:0.6,side:THREE.DoubleSide})
+  aimRing = new THREE.Mesh(
+    new THREE.RingGeometry(1.5, 2.2, 20),
+    new THREE.MeshBasicMaterial({ color: 0xff3333, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
   );
-  aimMarker.rotation.x=-Math.PI/2;aimMarker.position.y=0.5;aimMarker.visible=false;
-  scene.add(aimMarker);
+  aimRing.rotation.x = -Math.PI / 2; aimRing.position.y = 0.5; aimRing.visible = false;
+  scene.add(aimRing);
 
-  // Landing indicators for warship
-  for(let i=0;i<3;i++){
-    const d=new THREE.Mesh(new THREE.RingGeometry(1,1.8,14),new THREE.MeshBasicMaterial({color:0xff6600,transparent:true,opacity:0.5,side:THREE.DoubleSide}));
-    d.rotation.x=-Math.PI/2;d.position.y=0.3;d.visible=false;scene.add(d);landingDots.push(d);
+  for (let i = 0; i < 3; i++) {
+    const d = new THREE.Mesh(new THREE.RingGeometry(1, 1.6, 14), new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.45, side: THREE.DoubleSide }));
+    d.rotation.x = -Math.PI / 2; d.position.y = 0.3; d.visible = false; scene.add(d); dots.push(d);
   }
 
-  window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+  // Build islands that were already received
+  if (ISL.length) { for (const i of ISL) buildIsland(i); buildRocks(); }
 
-  // Keys
-  window.addEventListener('keydown',e=>{
-    if(!started)return;
-    if(marketOpen){if(e.code==='KeyB')toggleMarket();return;}
-    keys[e.code]=true;
-    if(e.code==='Digit1')socket?.emit('setSails',0);
-    if(e.code==='Digit2')socket?.emit('setSails',1);
-    if(e.code==='Digit3')socket?.emit('setSails',2);
-    if(e.code==='KeyB')toggleMarket();
-    if(e.code==='Space')e.preventDefault();
+  // Events
+  window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+  window.addEventListener('keydown', e => {
+    if (!playing) return;
+    if (mktOpen && e.code === 'KeyB') { toggleMkt(); return; }
+    if (mktOpen) return;
+    keys[e.code] = true;
+    if (e.code === 'Digit1') socket.emit('setSails', 0);
+    if (e.code === 'Digit2') socket.emit('setSails', 1);
+    if (e.code === 'Digit3') socket.emit('setSails', 2);
+    if (e.code === 'KeyB') toggleMkt();
+    if (e.code === 'Space') e.preventDefault();
   });
-  window.addEventListener('keyup',e=>{keys[e.code]=false});
-  window.addEventListener('blur',()=>{keys={}});
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+  window.addEventListener('blur', () => { keys = {}; });
+  window.addEventListener('mousemove', e => { mX = e.clientX; mY = e.clientY; });
+  window.addEventListener('mousedown', e => { if (!mktOpen && playing && e.button === 0) socket.emit('fire'); });
 
-  // Mouse
-  window.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY});
-  window.addEventListener('mousedown',e=>{if(!marketOpen&&started&&e.button===0)socket?.emit('fire')});
-
-  // Minimap teleport
-  document.getElementById('minimap').addEventListener('click',e=>{
-    const r=e.target.getBoundingClientRect();
-    const mx=(e.clientX-r.left)/200,mz=(e.clientY-r.top)/200;
-    socket?.emit('teleport',{x:(mx-0.5)*mapSize,z:(mz-0.5)*mapSize});
+  mmC.addEventListener('click', e => {
+    const r = mmC.getBoundingClientRect();
+    socket.emit('tp', { x: ((e.clientX - r.left) / 200 - 0.5) * MAP, z: ((e.clientY - r.top) / 200 - 0.5) * MAP });
   });
-
-  document.getElementById('market-close').onclick=()=>toggleMarket();
-
-  console.log('Three.js initialized');
+  document.getElementById('mclose').onclick = () => toggleMkt();
 }
 
-function toggleMarket(){
-  const me=gs.players[myId];
-  if(!me)return;
-  if(!marketOpen&&me.onBoat)return; // only on land
-  marketOpen=!marketOpen;
-  document.getElementById('market').style.display=marketOpen?'flex':'none';
-  if(marketOpen)updateMarketUI();
+function toggleMkt() {
+  const me = GS.players[myId]; if (!me) return;
+  if (!mktOpen && me.onBoat) return;
+  mktOpen = !mktOpen;
+  document.getElementById('market').style.display = mktOpen ? 'flex' : 'none';
+  if (mktOpen) renderMarket();
 }
 
-/* ── BUILD SCENE FROM INIT DATA ── */
-function buildScene(data){
-  if(sceneReady)return;
-  islandsData=data.islands;
-  obstaclesData=data.obstacles||[];
-  mapSize=data.mapSize;
-  shipDefs=data.ships||{};
-
-  // Islands
-  for(const d of islandsData){
-    const g=new THREE.Group();
-    // Land platform
-    g.add(Object.assign(new THREE.Mesh(new THREE.CylinderGeometry(d.radius*0.92,d.radius,3.5,24),new THREE.MeshPhongMaterial({color:0x4a8a3a,flatShading:true})),{position:new THREE.Vector3(0,1.8,0)}));
-    // Beach
-    g.add(Object.assign(new THREE.Mesh(new THREE.CylinderGeometry(d.radius,d.radius+10,2,24),new THREE.MeshPhongMaterial({color:0xf0d9a0})),{position:new THREE.Vector3(0,0.6,0)}));
-    // Hills
-    for(let i=0;i<3;i++){
-      const r=d.radius*(0.15+Math.random()*0.2);
-      const h=new THREE.Mesh(new THREE.SphereGeometry(r,8,6),new THREE.MeshPhongMaterial({color:0x3d7a30,flatShading:true}));
-      const a=Math.random()*Math.PI*2,dist=Math.random()*d.radius*0.4;
-      h.position.set(Math.cos(a)*dist,r*0.35+2.5,Math.sin(a)*dist);h.scale.y=0.45;g.add(h);
-    }
-    // Trees
-    for(let i=0;i<5+Math.floor(d.radius/15);i++){
-      const a=Math.random()*Math.PI*2,dist=5+Math.random()*(d.radius-15);
-      const t=new THREE.Group();
-      t.add(Object.assign(new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.35,6,6),new THREE.MeshPhongMaterial({color:0x8B6914})),{position:new THREE.Vector3(0,3,0)}));
-      for(let j=0;j<5;j++){const la=(j/5)*Math.PI*2;const lf=new THREE.Mesh(new THREE.ConeGeometry(1.8,3,4),new THREE.MeshPhongMaterial({color:0x228B22,flatShading:true}));lf.position.set(Math.cos(la)*1,6.5,Math.sin(la)*1);lf.rotation.set(Math.sin(la)*.6,0,Math.cos(la)*.6);t.add(lf);}
-      t.position.set(Math.cos(a)*dist,2.8,Math.sin(a)*dist);t.scale.setScalar(0.5+Math.random()*0.4);g.add(t);
-    }
-    g.position.set(d.x,0,d.z);scene.add(g);
+function renderMarket() {
+  const me = GS.players[myId]; if (me) myGold = me.gold;
+  document.getElementById('mgold').textContent = `Gold: ${myGold}`;
+  const el = document.getElementById('slist2'); el.innerHTML = '';
+  for (const [t, d] of Object.entries(SHIPDEFS)) {
+    const own = myOwned.includes(t), eq = myShip === t, can = myGold >= d.price;
+    let bc, bt;
+    if (eq) { bc = 'on'; bt = 'Equipped'; } else if (own) { bc = 'eq'; bt = 'Equip'; } else if (can) { bc = 'buy'; bt = `Buy ${d.price}g`; } else { bc = 'on'; bt = `${d.price}g`; }
+    const ci = d.cannons === 'side' ? `${d.count} side cannons` : 'Front cannon';
+    const card = document.createElement('div'); card.className = 'sc';
+    card.innerHTML = `<div class="si"><h3>${d.name}</h3><p>HP:${d.hp} Spd:${Math.round(d.speed * 100)} ${ci}</p></div><button class="sb ${bc}">${bt}</button>`;
+    el.appendChild(card);
+    card.querySelector('button').onclick = () => { if (eq) return; if (own) socket.emit('equip', t); else socket.emit('buy', t); };
   }
+}
 
-  // Obstacles (rocks)
-  for(const ob of obstaclesData){
-    const m=new THREE.Mesh(new THREE.SphereGeometry(ob.radius,6,5),new THREE.MeshPhongMaterial({color:0x666655,flatShading:true}));
-    m.position.set(ob.x,3+ob.radius*0.4,ob.z);m.scale.y=0.5;scene.add(m);
+// ═══ 3D BUILDERS ═══
+function M(g, c, p, r) { const m = new THREE.Mesh(g, new THREE.MeshPhongMaterial({ color: c })); if (p) m.position.set(p[0], p[1], p[2]); if (r) m.rotation.set(r[0], r[1], r[2]); return m; }
+
+function mkRowboat() {
+  const g = new THREE.Group();
+  g.add(M(new THREE.BoxGeometry(3.5, 1.2, 8), 0x8B6914, [0, .7, 0]));
+  for (const s of [-1, 1]) g.add(M(new THREE.BoxGeometry(.25, 1, 8.2), 0x6B4E12, [s * 1.6, 1.4, 0]));
+  g.add(M(new THREE.ConeGeometry(1.7, 2.5, 4), 0x8B6914, [0, .8, 5], [Math.PI / 2, 0, 0]));
+  g.add(M(new THREE.BoxGeometry(3.2, 1.6, .3), 0x6B4E12, [0, 1.2, -4.2]));
+  g.add(M(new THREE.CylinderGeometry(.1, .13, 6, 6), 0x543210, [0, 4.2, -1]));
+  const sl = M(new THREE.PlaneGeometry(2.8, 3.8), 0xf0e8d0, [0, 5.5, -.8]); sl.material.side = THREE.DoubleSide; sl.material.transparent = true; sl.material.opacity = .85; sl.name = 'sail'; g.add(sl);
+  g.add(M(new THREE.CylinderGeometry(.35, .4, .4, 8), 0x333333, [0, 1.5, 3]));
+  const b = M(new THREE.CylinderGeometry(.15, .2, 2, 8), 0x1a1a1a, [0, 1.7, 4.2], [Math.PI / 2, 0, 0]); b.name = 'barrel'; g.add(b);
+  return g;
+}
+
+function mkWarship() {
+  const g = new THREE.Group();
+  g.add(M(new THREE.BoxGeometry(10, 3.5, 20), 0x5a3015, [0, 1.8, 0]));
+  g.add(M(new THREE.BoxGeometry(9, .3, 18), 0xC4A060, [0, 3.8, 0]));
+  g.add(M(new THREE.BoxGeometry(8, 2.5, 5), 0x6B3E1A, [0, 5, -7]));
+  g.add(M(new THREE.ConeGeometry(5, 6, 4), 0x5a3015, [0, 1.8, 13], [Math.PI / 2, 0, 0]));
+  for (const z of [-2, 4]) {
+    g.add(M(new THREE.CylinderGeometry(.2, .25, 14, 8), 0x543210, [0, 11, z]));
+    const s = M(new THREE.PlaneGeometry(6, 8), 0xe8dfc8, [0, 13, z + .3]); s.material.side = THREE.DoubleSide; s.material.transparent = true; s.material.opacity = .85; s.name = z === -2 ? 'sail' : 'sail2'; g.add(s);
   }
-
-  sceneReady=true;
-  console.log('Scene built:',islandsData.length,'islands');
-}
-
-/* ── SHIP MODELS ── */
-function mkRowboat(){
-  const g=new THREE.Group();
-  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(3,1.2,8),new THREE.MeshPhongMaterial({color:0x8B6914})),{position:new THREE.Vector3(0,0.7,0)}));
-  for(const s of[-1,1])g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(0.25,1,8.2),new THREE.MeshPhongMaterial({color:0x6B4E12})),{position:new THREE.Vector3(s*1.6,1.4,0)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.ConeGeometry(1.7,2.5,4),new THREE.MeshPhongMaterial({color:0x8B6914})),{position:new THREE.Vector3(0,0.8,5),rotation:new THREE.Euler(Math.PI/2,0,0)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(3.2,1.6,0.3),new THREE.MeshPhongMaterial({color:0x6B4E12})),{position:new THREE.Vector3(0,1.2,-4.2)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.13,6,6),new THREE.MeshPhongMaterial({color:0x543210})),{position:new THREE.Vector3(0,4.2,-1)}));
-  const sail=new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.8),new THREE.MeshPhongMaterial({color:0xf0e8d0,side:THREE.DoubleSide,transparent:true,opacity:0.85}));
-  sail.position.set(0,5.5,-0.8);sail.name='sail';g.add(sail);
-  g.add(Object.assign(new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.4,0.4,8),new THREE.MeshPhongMaterial({color:0x333})),{position:new THREE.Vector3(0,1.5,3)}));
-  const brl=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,2,8),new THREE.MeshPhongMaterial({color:0x1a1a1a}));
-  brl.rotation.x=Math.PI/2;brl.position.set(0,1.7,4.2);brl.name='cannonBarrel';g.add(brl);
+  for (const sd of [-1, 1]) for (let i = -1; i <= 1; i++) { const c = M(new THREE.CylinderGeometry(.2, .3, 1.8, 6), 0x222222, [sd * 5.2, 3.8, i * 4]); c.rotation.z = sd * Math.PI / 2; g.add(c); }
+  g.add(M(new THREE.PlaneGeometry(2, 1.2), 0x111111, [0, 18.5, -2]));
   return g;
 }
-function mkWarship(){
-  const g=new THREE.Group();
-  const hs=new THREE.Shape();hs.moveTo(0,-10);hs.quadraticCurveTo(5,-8,5.5,0);hs.quadraticCurveTo(5.5,8,3,10);hs.lineTo(-3,10);hs.quadraticCurveTo(-5.5,8,-5.5,0);hs.quadraticCurveTo(-5,-8,0,-10);
-  const hull=new THREE.Mesh(new THREE.ExtrudeGeometry(hs,{depth:4,bevelEnabled:true,bevelSize:0.5,bevelThickness:0.3}),new THREE.MeshPhongMaterial({color:0x5a3015}));
-  hull.rotation.x=-Math.PI/2;hull.position.y=1;g.add(hull);
-  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(9,0.3,18),new THREE.MeshPhongMaterial({color:0xC4A060})),{position:new THREE.Vector3(0,3.8,0)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(8,2,5),new THREE.MeshPhongMaterial({color:0x6B3E1A})),{position:new THREE.Vector3(0,4.5,-7)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(6,1.5,3),new THREE.MeshPhongMaterial({color:0x6B3E1A})),{position:new THREE.Vector3(0,4.2,8)}));
-  for(const z of[-2,4]){
-    g.add(Object.assign(new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,14,8),new THREE.MeshPhongMaterial({color:0x543210})),{position:new THREE.Vector3(0,11,z)}));
-    const s=new THREE.Mesh(new THREE.PlaneGeometry(6,8),new THREE.MeshPhongMaterial({color:0xe8dfc8,side:THREE.DoubleSide,transparent:true,opacity:0.85}));
-    s.position.set(0,13,z+0.3);s.name=z===-2?'sail':'sail2';g.add(s);
+
+function mkTrade() {
+  const g = new THREE.Group();
+  g.add(M(new THREE.BoxGeometry(6, 2.5, 14), 0x6B4E12, [0, 1.5, 0]));
+  for (const s of [-1, 1]) g.add(M(new THREE.BoxGeometry(.3, 2, 14.5), 0x543210, [s * 3.15, 2.8, 0]));
+  g.add(M(new THREE.ConeGeometry(3.2, 4, 4), 0x6B4E12, [0, 1.5, 9], [Math.PI / 2, 0, 0]));
+  g.add(M(new THREE.BoxGeometry(5.5, .2, 13), 0xC4A060, [0, 3, 0]));
+  g.add(M(new THREE.BoxGeometry(4, 2.5, 4), 0x7a5020, [0, 4.5, -4.5]));
+  g.add(M(new THREE.CylinderGeometry(.18, .22, 12, 8), 0x543210, [0, 9.5, 1]));
+  const s = M(new THREE.PlaneGeometry(7, 9), 0xe8dfc8, [0, 11, 2]); s.material.side = THREE.DoubleSide; s.material.transparent = true; s.material.opacity = .85; s.name = 'sail'; g.add(s);
+  const s2 = M(new THREE.PlaneGeometry(5, 7), 0xddd8c0, [0, 10, 5]); s2.material.side = THREE.DoubleSide; s2.material.transparent = true; s2.material.opacity = .8; s2.name = 'sail2'; g.add(s2);
+  g.add(M(new THREE.CylinderGeometry(.3, .35, .4, 8), 0x333333, [0, 3.3, 5.5]));
+  const b = M(new THREE.CylinderGeometry(.15, .2, 2.2, 8), 0x1a1a1a, [0, 3.5, 6.8], [Math.PI / 2, 0, 0]); b.name = 'barrel'; g.add(b);
+  return g;
+}
+
+function mkChar(me) {
+  const g = new THREE.Group(), c = me ? 0x2e86c1 : 0xc0392b;
+  g.add(M(new THREE.BoxGeometry(.9, 1.5, .6), c, [0, 2.3, 0]));
+  g.add(M(new THREE.SphereGeometry(.38, 8, 8), 0xf0c090, [0, 3.4, 0]));
+  g.add(M(new THREE.CylinderGeometry(.25, .45, .45, 8), 0x1a1a1a, [0, 3.9, 0]));
+  for (const s of [-.22, .22]) { const l = M(new THREE.BoxGeometry(.3, 1, .35), 0x4a3520, [s, .9, 0]); l.name = s < 0 ? 'lL' : 'lR'; g.add(l); }
+  for (const s of [-.6, .6]) { const a = M(new THREE.BoxGeometry(.25, 1, .25), c, [s, 2.3, 0]); a.name = s < 0 ? 'aL' : 'aR'; g.add(a); }
+  return g;
+}
+
+function mkTag(name, me) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 40;
+  const x = c.getContext('2d');
+  x.fillStyle = me ? 'rgba(46,134,193,.65)' : 'rgba(0,0,0,.5)';
+  x.beginPath(); x.roundRect(4, 2, 248, 36, 5); x.fill();
+  x.fillStyle = '#fff'; x.font = 'bold 18px sans-serif'; x.textAlign = 'center'; x.fillText(name, 128, 28);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true }));
+  s.scale.set(10, 2.5, 1); return s;
+}
+
+function buildIsland(d) {
+  const g = new THREE.Group();
+  g.add(M(new THREE.CylinderGeometry(d.r * .92, d.r, 3.5, 28), 0x4a8a3a, [0, 1.8, 0]));
+  g.add(M(new THREE.CylinderGeometry(d.r, d.r + 10, 2, 28), 0xf0d9a0, [0, .6, 0]));
+  for (let i = 0; i < 3; i++) {
+    const r = d.r * (.15 + Math.random() * .25), a = Math.random() * Math.PI * 2, dd = Math.random() * d.r * .4;
+    const h = M(new THREE.SphereGeometry(r, 8, 6), 0x3d7a30, [Math.cos(a) * dd, r * .35 + 2.5, Math.sin(a) * dd]);
+    h.scale.y = .45; g.add(h);
   }
-  for(const side of[-1,1])for(let i=-1;i<=1;i++){const c=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.3,1.8,6),new THREE.MeshPhongMaterial({color:0x222}));c.rotation.z=side*Math.PI/2;c.position.set(side*5,3.8,i*4);g.add(c);}
-  g.add(Object.assign(new THREE.Mesh(new THREE.PlaneGeometry(2,1.2),new THREE.MeshPhongMaterial({color:0x111,side:THREE.DoubleSide})),{position:new THREE.Vector3(0,18.5,-2)}));
-  return g;
-}
-function mkTrade(){
-  const g=new THREE.Group();
-  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(6,2.5,14),new THREE.MeshPhongMaterial({color:0x6B4E12})),{position:new THREE.Vector3(0,1.5,0)}));
-  for(const s of[-1,1])g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(0.3,2,14.5),new THREE.MeshPhongMaterial({color:0x543210})),{position:new THREE.Vector3(s*3.15,2.8,0)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.ConeGeometry(3.2,4,4),new THREE.MeshPhongMaterial({color:0x6B4E12})),{position:new THREE.Vector3(0,1.5,9),rotation:new THREE.Euler(Math.PI/2,0,0)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(5.5,0.2,13),new THREE.MeshPhongMaterial({color:0xC4A060})),{position:new THREE.Vector3(0,3,0)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(4,2.5,4),new THREE.MeshPhongMaterial({color:0x7a5020})),{position:new THREE.Vector3(0,4.5,-4.5)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.22,12,8),new THREE.MeshPhongMaterial({color:0x543210})),{position:new THREE.Vector3(0,9.5,1)}));
-  const s1=new THREE.Mesh(new THREE.PlaneGeometry(7,9),new THREE.MeshPhongMaterial({color:0xe8dfc8,side:THREE.DoubleSide,transparent:true,opacity:0.85}));
-  s1.position.set(0,11,2);s1.rotation.y=0.2;s1.name='sail';g.add(s1);
-  const brl=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,2.2,8),new THREE.MeshPhongMaterial({color:0x1a1a1a}));
-  brl.rotation.x=Math.PI/2;brl.position.set(0,3.5,6.8);brl.name='cannonBarrel';g.add(brl);
-  return g;
-}
-function mkChar(isMe){
-  const g=new THREE.Group(),c=isMe?0x2e86c1:0xc0392b;
-  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(0.9,1.5,0.6),new THREE.MeshPhongMaterial({color:c})),{position:new THREE.Vector3(0,2.3,0)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.SphereGeometry(0.38,8,8),new THREE.MeshPhongMaterial({color:0xf0c090})),{position:new THREE.Vector3(0,3.4,0)}));
-  g.add(Object.assign(new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.45,0.45,8),new THREE.MeshPhongMaterial({color:0x1a1a1a})),{position:new THREE.Vector3(0,3.9,0)}));
-  for(const s of[-0.22,0.22]){const l=new THREE.Mesh(new THREE.BoxGeometry(0.3,1,0.35),new THREE.MeshPhongMaterial({color:0x4a3520}));l.position.set(s,0.9,0);l.name=s<0?'legL':'legR';g.add(l);}
-  for(const s of[-0.6,0.6]){const a=new THREE.Mesh(new THREE.BoxGeometry(0.25,1,0.25),new THREE.MeshPhongMaterial({color:c}));a.position.set(s,2.3,0);a.name=s<0?'armL':'armR';g.add(a);}
-  return g;
-}
-function mkName(name,isMe){
-  const c=document.createElement('canvas');c.width=256;c.height=40;
-  const x=c.getContext('2d');
-  x.fillStyle=isMe?'rgba(46,134,193,.65)':'rgba(0,0,0,.5)';
-  x.beginPath();x.roundRect(4,2,248,36,5);x.fill();
-  x.fillStyle='#fff';x.font='bold 18px sans-serif';x.textAlign='center';x.fillText(name,128,28);
-  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));
-  s.scale.set(10,2.5,1);return s;
+  for (let i = 0; i < 4 + Math.floor(d.r / 15); i++) {
+    const a = Math.random() * Math.PI * 2, dd = 5 + Math.random() * (d.r - 15);
+    const p = mkPalm(); p.position.set(Math.cos(a) * dd, 2.8, Math.sin(a) * dd); p.scale.setScalar(.6 + Math.random() * .4); g.add(p);
+  }
+  g.position.set(d.x, 0, d.z); scene.add(g);
 }
 
-/* ── ENTITY ── */
-function getEnt(id){
-  if(!ents[id]){
-    const isMe=id===myId;
-    const ch=mkChar(isMe);scene.add(ch);
-    const nt=mkName('...',isMe);nt.position.y=5.5;
-    ents[id]={boat:null,bType:null,char:ch,nTag:nt,lName:'',nOn:null};
+function mkPalm() {
+  const g = new THREE.Group();
+  g.add(M(new THREE.CylinderGeometry(.2, .35, 6, 6), 0x8B6914, [0, 3, 0], [0, 0, (Math.random() - .5) * .2]));
+  for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2; g.add(M(new THREE.ConeGeometry(2, 3, 4), 0x228B22, [Math.cos(a), 6.5, Math.sin(a)], [Math.sin(a) * .6, 0, Math.cos(a) * .6])); }
+  return g;
+}
+
+function buildRocks() {
+  for (const o of ROCKS) { const m = M(new THREE.SphereGeometry(o.r, 6, 6), 0x666655, [o.x, 3 + o.r * .5, o.z]); m.scale.y = .6; scene.add(m); }
+}
+
+// ═══ ENTITY MANAGEMENT ═══
+function getEnt(id) {
+  if (!ents[id]) {
+    const me = id === myId, ch = mkChar(me); scene.add(ch);
+    const tg = mkTag('...', me); tg.position.y = 5.5;
+    ents[id] = { boat: null, bt: null, char: ch, tag: tg, tn: '', to: null };
   }
   return ents[id];
 }
-function ensureBoat(e,type){
-  if(e.bType===type)return;
-  if(e.boat)scene.remove(e.boat);
-  e.boat=type==='warship'?mkWarship():type==='tradeship'?mkTrade():mkRowboat();
-  scene.add(e.boat);e.bType=type;
+function ensBoat(e, type) {
+  if (e.bt === type) return;
+  if (e.boat) scene.remove(e.boat);
+  e.boat = type === 'warship' ? mkWarship() : type === 'tradeship' ? mkTrade() : mkRowboat();
+  scene.add(e.boat); e.bt = type;
 }
-function rmEnt(id){const e=ents[id];if(!e)return;if(e.boat)scene.remove(e.boat);scene.remove(e.char);if(e.nTag.parent)e.nTag.parent.remove(e.nTag);delete ents[id];}
+function rmEnt(id) { const e = ents[id]; if (!e) return; if (e.boat) scene.remove(e.boat); scene.remove(e.char); if (e.tag.parent) e.tag.parent.remove(e.tag); delete ents[id]; }
 
-/* ── SOCKET ── */
-function initSocket(){
-  const st=document.getElementById('conn-status');
-  socket=io({reconnection:true,reconnectionDelay:1000,transports:['websocket','polling']});
+// ═══ CANNONBALL POOL ═══
+const cbG = new THREE.SphereGeometry(.4, 6, 6), cbM = new THREE.MeshPhongMaterial({ color: 0x1a1a1a });
+function getCB(i) { while (cbPool.length <= i) { const m = new THREE.Mesh(cbG, cbM); m.visible = false; scene.add(m); cbPool.push(m); } return cbPool[i]; }
 
-  socket.on('connect',()=>{st.style.display='none';console.log('Connected:',socket.id)});
-  socket.on('disconnect',()=>{st.textContent='Reconnecting...';st.style.display='block';keys={}});
+// ═══ MAIN LOOP ═══
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
 
-  socket.on('init',data=>{
-    console.log('Init received, id:',data.id,'spawn:',data.spawn);
-    const old=myId;
-    myId=data.id;
-    spawnData=data.spawn;
-
-    // Position camera at spawn immediately
-    if(spawnData){
-      const sd=spawnData;
-      camera.position.set(sd.x-Math.sin(sd.rot)*45, 25, sd.z-Math.cos(sd.rot)*45);
-      camera.lookAt(sd.x,0,sd.z);
-    }
-
-    buildScene(data);
-    if(old&&old!==myId)rmEnt(old);
-    socket.emit('setName',pName);
-  });
-
-  socket.on('playerLeft',rmEnt);
-  socket.on('state',s=>{gs=s});
-  socket.on('sunk',d=>{
-    document.getElementById('death-msg').textContent=`Sunk by ${d.by}!`;
-    document.getElementById('death-screen').style.display='flex';
-    setTimeout(()=>document.getElementById('death-screen').style.display='none',2500);
-  });
-  socket.on('shopMsg',m=>{document.getElementById('shop-msg').textContent=m});
-  socket.on('updatePlayer',d=>{
-    if(d.gold!==undefined)myGold=d.gold;
-    if(d.ownedShips)myOwned=d.ownedShips;
-    if(d.shipType)myShipType=d.shipType;
-    if(marketOpen)updateMarketUI();
-  });
-
-  setInterval(()=>{if(socket?.connected)socket.emit('heartbeat')},5000);
-}
-
-/* ── MARKET UI ── */
-function updateMarketUI(){
-  const me=gs.players[myId];
-  if(me){myGold=me.gold;myShipType=me.shipType;myOwned=me.ownedShips||myOwned;}
-  document.getElementById('market-gold').textContent='Gold: '+myGold;
-  const list=document.getElementById('ship-list');list.innerHTML='';
-  for(const[type,def]of Object.entries(shipDefs)){
-    const owned=myOwned.includes(type),eq=myShipType===type,canBuy=myGold>=def.price;
-    let bc,bt;
-    if(eq){bc='equipped';bt='Equipped';}else if(owned){bc='equip';bt='Equip';}else if(canBuy){bc='buy';bt='Buy '+def.price+'g';}else{bc='equipped';bt=def.price+'g';}
-    const ci=def.cannons==='side'?def.cannonCount+' side cannons':'Front cannon';
-    const card=document.createElement('div');card.className='ship-card';
-    card.innerHTML=`<div class="ship-info"><h3>${def.name}</h3><p>HP:${def.hp} Spd:${Math.round(def.speed*100)} ${ci}</p></div><button class="ship-btn ${bc}" data-t="${type}">${bt}</button>`;
-    list.appendChild(card);
-    card.querySelector('button').onclick=()=>{if(eq)return;if(owned)socket.emit('switchShip',type);else socket.emit('buyShip',type);};
-  }
-}
-
-/* ── AIM ── */
-function updateAim(){
-  m2.x=(mouseX/innerWidth)*2-1;m2.y=-(mouseY/innerHeight)*2+1;
-  ray.setFromCamera(m2,camera);
-  const hit=new THREE.Vector3();
-  if(ray.ray.intersectPlane(wPlane,hit)){mWorld.x=hit.x;mWorld.z=hit.z;socket?.emit('aim',{x:hit.x,z:hit.z});}
-}
-
-/* ── CB POOL ── */
-const cbG=new THREE.SphereGeometry(0.4,6,6),cbM=new THREE.MeshPhongMaterial({color:0x1a1a1a});
-function getCB(i){while(cbPool.length<=i){const m=new THREE.Mesh(cbG,cbM);m.visible=false;scene.add(m);cbPool.push(m);}return cbPool[i];}
-
-/* ── MAIN LOOP ── */
-function tick(){
-  requestAnimationFrame(tick);
-  const t=clock.getElapsedTime();
-
-  // Input
-  if(socket?.connected&&myId&&!marketOpen){
-    socket.volatile.emit('input',{
-      forward:!!(keys.KeyW||keys.ArrowUp),backward:!!(keys.KeyS||keys.ArrowDown),
-      left:!!(keys.KeyA||keys.ArrowLeft),right:!!(keys.KeyD||keys.ArrowRight),
-      action:!!keys.KeyE,jump:!!keys.Space,
+  // Send input
+  if (socket?.connected && myId && !mktOpen) {
+    socket.volatile.emit('input', {
+      fwd: !!(keys['KeyW'] || keys['ArrowUp']), back: !!(keys['KeyS'] || keys['ArrowDown']),
+      left: !!(keys['KeyA'] || keys['ArrowLeft']), right: !!(keys['KeyD'] || keys['ArrowRight']),
+      act: !!keys['KeyE'], jump: !!keys['Space'],
     });
   }
 
-  updateAim();
+  // Mouse aim
+  mv.x = (mX / innerWidth) * 2 - 1; mv.y = -(mY / innerHeight) * 2 + 1;
+  ray.setFromCamera(mv, camera);
+  const hit = new THREE.Vector3();
+  if (ray.ray.intersectPlane(wP, hit)) { mW.x = hit.x; mW.z = hit.z; socket?.emit('aim', { x: hit.x, z: hit.z }); }
 
-  // Water wave
-  const wp=waterMesh.geometry.attributes.position;
-  for(let i=0;i<wp.count;i++){
-    const x=wp.getX(i),y=wp.getY(i);
-    wp.setZ(i,Math.sin(x*0.018+t*1.1)*0.6+Math.sin(y*0.022+t*0.9)*0.5+Math.sin((x+y)*0.01+t*0.6)*0.7);
-  }
-  wp.needsUpdate=true;waterMesh.geometry.computeVertexNormals();
+  // Water anim
+  const wp = water.geometry.attributes.position;
+  for (let i = 0; i < wp.count; i++) { const x = wp.getX(i), y = wp.getY(i); wp.setZ(i, Math.sin(x * .02 + t * 1.2) * .6 + Math.sin(y * .025 + t) * .5 + Math.sin((x + y) * .012 + t * .6) * .7); }
+  wp.needsUpdate = true; water.geometry.computeVertexNormals();
 
-  // Entities
-  const active=new Set();
-  for(const id in gs.players){
+  // Update entities
+  const active = new Set();
+  for (const id in GS.players) {
     active.add(id);
-    const p=gs.players[id],e=getEnt(id),isMe=id===myId;
-    ensureBoat(e,p.shipType);
+    const p = GS.players[id], e = getEnt(id), me = id === myId;
+    ensBoat(e, p.ship);
 
-    // Boat lerp
-    e.boat.position.x+=(p.bx-e.boat.position.x)*0.15;
-    e.boat.position.z+=(p.bz-e.boat.position.z)*0.15;
-    e.boat.position.y=Math.sin(t*1.8+p.bx*0.07)*0.35+0.5;
-    let bd=p.bRot-e.boat.rotation.y;while(bd>Math.PI)bd-=Math.PI*2;while(bd<-Math.PI)bd+=Math.PI*2;
-    e.boat.rotation.y+=bd*0.15;e.boat.rotation.z=-bd*0.2;
+    // Boat
+    e.boat.position.x += (p.bx - e.boat.position.x) * .15;
+    e.boat.position.z += (p.bz - e.boat.position.z) * .15;
+    e.boat.position.y = Math.sin(t * 1.8 + p.bx * .07) * .35 + .3;
+    let bd = p.br - e.boat.rotation.y; while (bd > Math.PI) bd -= Math.PI * 2; while (bd < -Math.PI) bd += Math.PI * 2;
+    e.boat.rotation.y += bd * .15; e.boat.rotation.z = -bd * .2; e.boat.rotation.x = Math.sin(t * 1.3) * .02;
 
     // Sails
-    const sl=e.boat.getObjectByName('sail');
-    if(sl){sl.scale.y+=([0.05,0.5,1][p.sails||1]-sl.scale.y)*0.1;}
-    const s2=e.boat.getObjectByName('sail2');
-    if(s2){s2.scale.y+=([0.05,0.4,0.9][p.sails||1]-s2.scale.y)*0.1;}
+    const sl = e.boat.getObjectByName('sail'); if (sl) { const ts = [.05, .5, 1][p.sails || 1]; sl.scale.y += (ts - sl.scale.y) * .1; }
+    const s2 = e.boat.getObjectByName('sail2'); if (s2) { const ts = [.05, .4, .9][p.sails || 1]; s2.scale.y += (ts - s2.scale.y) * .1; }
 
-    // Cannon barrel aim
-    if(isMe&&p.onBoat){
-      const brl=e.boat.getObjectByName('cannonBarrel');
-      if(brl){const d=Math.sqrt((mWorld.x-e.boat.position.x)**2+(mWorld.z-e.boat.position.z)**2);brl.rotation.x=Math.PI/2-Math.min(0.5,Math.max(-0.1,d*0.003));}
-    }
+    // Barrel aim
+    if (me && p.onBoat) { const br = e.boat.getObjectByName('barrel'); if (br) { const d = Math.hypot(mW.x - e.boat.position.x, mW.z - e.boat.position.z); br.rotation.x = Math.PI / 2 - Math.min(.5, Math.max(-.1, d * .003)); } }
 
     // Character
-    if(p.onBoat){
+    if (p.onBoat) {
       e.char.position.copy(e.boat.position);
-      const sd=shipDefs[p.shipType]||{};
-      if(sd.cannons==='front'){e.char.position.x+=Math.sin(e.boat.rotation.y)*2;e.char.position.z+=Math.cos(e.boat.rotation.y)*2;}
-      else{e.char.position.x-=Math.sin(e.boat.rotation.y)*5;e.char.position.z-=Math.cos(e.boat.rotation.y)*5;}
-      e.char.position.y=e.boat.position.y+1.5;
-      if(isMe){const dx=mWorld.x-e.char.position.x,dz=mWorld.z-e.char.position.z;e.char.rotation.y=Math.atan2(dx,dz);}
-      else e.char.rotation.y=e.boat.rotation.y;
-    }else{
-      e.char.position.x+=(p.cx-e.char.position.x)*0.2;e.char.position.z+=(p.cz-e.char.position.z)*0.2;e.char.position.y+=(p.cy-e.char.position.y)*0.2;
-      let cd=p.cRot-e.char.rotation.y;while(cd>Math.PI)cd-=Math.PI*2;while(cd<-Math.PI)cd+=Math.PI*2;e.char.rotation.y+=cd*0.2;
-      const sw=Math.sin(t*8)*0.4;
-      ['legL','legR','armL','armR'].forEach(n=>{const m=e.char.getObjectByName(n);if(m)m.rotation.x=n.includes('L')?sw:-sw;});
+      const sd = SHIPDEFS[p.ship] || {};
+      if (sd.cannons === 'front') { e.char.position.x += Math.sin(e.boat.rotation.y) * 2; e.char.position.z += Math.cos(e.boat.rotation.y) * 2; }
+      else { e.char.position.x -= Math.sin(e.boat.rotation.y) * 5; e.char.position.z -= Math.cos(e.boat.rotation.y) * 5; }
+      e.char.position.y = e.boat.position.y + 1.5;
+      e.char.rotation.y = me ? Math.atan2(mW.x - e.char.position.x, mW.z - e.char.position.z) : e.boat.rotation.y;
+    } else {
+      e.char.position.x += (p.cx - e.char.position.x) * .2; e.char.position.z += (p.cz - e.char.position.z) * .2; e.char.position.y += (p.cy - e.char.position.y) * .2;
+      let cd = p.cr - e.char.rotation.y; while (cd > Math.PI) cd -= Math.PI * 2; while (cd < -Math.PI) cd += Math.PI * 2; e.char.rotation.y += cd * .2;
+      const sw = Math.sin(t * 8) * .4;
+      ['lL', 'lR', 'aL', 'aR'].forEach(n => { const m = e.char.getObjectByName(n); if (m) m.rotation.x = n.includes('L') ? sw : -sw; });
     }
 
-    // Name
-    if(e.lName!==p.name){if(e.nTag.parent)e.nTag.parent.remove(e.nTag);e.nTag=mkName(p.name,isMe);e.lName=p.name;}
-    const att=p.onBoat?'boat':'char';
-    if(e.nOn!==att){
-      if(e.nTag.parent)e.nTag.parent.remove(e.nTag);
-      (p.onBoat?e.boat:e.char).add(e.nTag);
-      e.nTag.position.y=p.onBoat?(p.shipType==='warship'?22:9):5.5;
-      e.nOn=att;
-    }
+    // Name tag
+    if (e.tn !== p.name) { if (e.tag.parent) e.tag.parent.remove(e.tag); e.tag = mkTag(p.name, me); e.tag.position.y = p.onBoat ? (p.ship === 'warship' ? 22 : 9) : 5.5; e.tn = p.name; }
+    const att = p.onBoat ? 'b' : 'c';
+    if (e.to !== att) { if (e.tag.parent) e.tag.parent.remove(e.tag); (p.onBoat ? e.boat : e.char).add(e.tag); e.tag.position.y = p.onBoat ? (p.ship === 'warship' ? 22 : 9) : 5.5; e.to = att; }
   }
-  for(const id in ents)if(!active.has(id))rmEnt(id);
+  for (const id in ents) if (!active.has(id)) rmEnt(id);
 
-  // Aim marker + landing
-  const me=gs.players[myId];
-  if(me&&me.onBoat){
-    aimMarker.visible=true;aimMarker.position.x=mWorld.x;aimMarker.position.z=mWorld.z;
-    const sd=shipDefs[me.shipType]||{};
-    if(sd.cannons==='side'){
-      for(let i=0;i<3;i++){landingDots[i].visible=true;const sp=(i-1)*7;landingDots[i].position.x=mWorld.x+Math.sin(me.bRot)*sp;landingDots[i].position.z=mWorld.z+Math.cos(me.bRot)*sp;}
-    }else landingDots.forEach(l=>l.visible=false);
-  }else{aimMarker.visible=false;landingDots.forEach(l=>l.visible=false);}
+  // Aim ring + landing dots
+  const me = GS.players[myId];
+  if (me && me.onBoat) {
+    aimRing.visible = true; aimRing.position.x = mW.x; aimRing.position.z = mW.z;
+    const sd = SHIPDEFS[me.ship] || {};
+    if (sd.cannons === 'side') {
+      for (let i = 0; i < 3; i++) { dots[i].visible = true; const sp = (i - 1) * 7; dots[i].position.x = mW.x + Math.sin(me.br) * sp; dots[i].position.z = mW.z + Math.cos(me.br) * sp; }
+    } else dots.forEach(d => d.visible = false);
+  } else { aimRing.visible = false; dots.forEach(d => d.visible = false); }
 
   // Cannonballs
-  const cbs=gs.cannonballs||[];
-  for(let i=0;i<cbs.length;i++){const m=getCB(i);m.visible=true;m.position.set(cbs[i].x,cbs[i].y,cbs[i].z);}
-  for(let i=cbs.length;i<cbPool.length;i++)cbPool[i].visible=false;
+  const cbArr = GS.cbs || [];
+  for (let i = 0; i < cbArr.length; i++) { const m = getCB(i); m.visible = true; m.position.set(cbArr[i].x, cbArr[i].y, cbArr[i].z); }
+  for (let i = cbArr.length; i < cbPool.length; i++) cbPool[i].visible = false;
 
   // Camera
-  if(me&&ents[myId]){
-    const e=ents[myId];let tgt,rot,cd,ch;
-    if(me.onBoat){tgt=e.boat.position;rot=e.boat.rotation.y;cd=45;ch=25;}
-    else{tgt=e.char.position;rot=e.char.rotation.y;cd=22;ch=14;}
-    const tx=tgt.x-Math.sin(rot)*cd,tz=tgt.z-Math.cos(rot)*cd;
-    camera.position.x+=(tx-camera.position.x)*0.06;camera.position.z+=(tz-camera.position.z)*0.06;
-    camera.position.y+=(tgt.y+ch-camera.position.y)*0.06;
-    camera.lookAt(tgt.x,tgt.y+3,tgt.z);
-  }else if(spawnData){
-    // Fallback: look at spawn point while waiting for state
-    camera.lookAt(spawnData.x,0,spawnData.z);
+  if (me && ents[myId]) {
+    const e = ents[myId]; let tgt, rot, cd, ch;
+    if (me.onBoat) { tgt = e.boat.position; rot = e.boat.rotation.y; cd = 45; ch = 25; }
+    else { tgt = e.char.position; rot = e.char.rotation.y; cd = 22; ch = 14; }
+    camera.position.x += (tgt.x - Math.sin(rot) * cd - camera.position.x) * .06;
+    camera.position.z += (tgt.z - Math.cos(rot) * cd - camera.position.z) * .06;
+    camera.position.y += (tgt.y + ch - camera.position.y) * .06;
+    camera.lookAt(tgt.x, tgt.y + 3, tgt.z);
   }
 
-  updateHUD();
-  drawMinimap();
-  renderer.render(scene,camera);
+  updateHUD(); drawMM();
+  document.getElementById('cross').style.left = (mX - 8) + 'px';
+  document.getElementById('cross').style.top = (mY - 8) + 'px';
+  renderer.render(scene, camera);
 }
 
-/* ── HUD ── */
-function updateHUD(){
-  const me=gs.players[myId];if(!me)return;
-  myGold=me.gold;myShipType=me.shipType;myOwned=me.ownedShips||myOwned;
-  document.getElementById('gold-display').textContent=myGold+' Gold';
-  const pct=Math.max(0,me.hp)/(me.maxHp||100);
-  const hb=document.getElementById('health-bar');
-  hb.style.width=(pct*100)+'%';
-  hb.style.background=pct>0.6?'#2ecc71':pct>0.3?'#f1c40f':'#e74c3c';
-  document.getElementById('health-text').textContent=Math.max(0,me.hp)+' / '+(me.maxHp||100);
-
-  const si=document.getElementById('sails-ind');
-  si.style.display=me.onBoat?'block':'none';
-  si.textContent=['Stopped','Half Sail','Full Sail'][me.sails||1];
-
-  const sl=document.getElementById('state-label');
-  sl.textContent=me.onBoat?(shipDefs[me.shipType]?.name||'Boat'):me.swimming?'Swimming!':'On Land [B=Shop]';
-
-  const ap=document.getElementById('action-prompt');
-  if(me.onBoat){let n=false;for(const i of islandsData){const dx=me.bx-i.x,dz=me.bz-i.z;if(Math.sqrt(dx*dx+dz*dz)<i.radius+14){n=true;break;}}ap.style.display=n?'block':'none';ap.textContent='Press E to disembark';}
-  else if(!me.swimming){const dx=me.cx-me.bx,dz=me.cz-me.bz;const nb=dx*dx+dz*dz<324;ap.style.display=nb?'block':'none';ap.textContent='Press E to board';}
-  else ap.style.display='none';
-
-  document.getElementById('player-count').textContent=Object.keys(gs.players).length+' online';
-  const sorted=Object.entries(gs.players).sort((a,b)=>b[1].score-a[1].score).slice(0,8);
-  document.getElementById('score-list').innerHTML=sorted.map(([id,p])=>`<div class="sr${id===myId?' me':''}"><span>${p.name}</span><span>${p.score} · ${p.gold}g</span></div>`).join('');
+// ═══ HUD ═══
+function updateHUD() {
+  const me = GS.players[myId]; if (!me) return;
+  if (me.gold !== undefined) myGold = me.gold; if (me.ship) myShip = me.ship;
+  document.getElementById('gold').textContent = `${myGold} Gold`;
+  document.getElementById('hp-bar').style.width = (Math.max(0, me.hp) / (me.mhp || 100) * 100) + '%';
+  document.getElementById('hp-text').textContent = `${Math.max(0, me.hp)}/${me.mhp || 100}`;
+  document.getElementById('sails').style.display = me.onBoat ? 'block' : 'none';
+  document.getElementById('sails').textContent = ['Stopped', 'Half Sail', 'Full Sail'][me.sails || 1];
+  document.getElementById('lbl').textContent = me.onBoat ? (SHIPDEFS[me.ship]?.name || 'Boat') : me.swim ? 'Swimming!' : 'On Land [B=Shop]';
+  const ap = document.getElementById('prompt');
+  if (me.onBoat) { let nr = false; for (const i of ISL) if (Math.hypot(me.bx - i.x, me.bz - i.z) < i.r + 14) { nr = true; break; } ap.style.display = nr ? 'block' : 'none'; ap.textContent = 'Press E to disembark'; }
+  else if (!me.swim) { ap.style.display = Math.hypot(me.cx - me.bx, me.cz - me.bz) < 18 ? 'block' : 'none'; ap.textContent = 'Press E to board'; }
+  else ap.style.display = 'none';
+  document.getElementById('pc').textContent = `${Object.keys(GS.players).length} online`;
+  const sorted = Object.entries(GS.players).sort((a, b) => b[1].score - a[1].score).slice(0, 8);
+  document.getElementById('slist').innerHTML = sorted.map(([id, p]) => `<div class="sr${id === myId ? ' me' : ''}"><span>${p.name}</span><span>${p.score}·${p.gold}g</span></div>`).join('');
 }
 
-/* ── MINIMAP ── */
-function drawMinimap(){
-  const c=mmCtx,w=200,h=200,s=w/mapSize;
-  c.clearRect(0,0,w,h);c.fillStyle='rgba(8,35,60,.9)';c.fillRect(0,0,w,h);
-  c.strokeStyle='rgba(255,255,255,.05)';c.lineWidth=1;
-  for(let i=1;i<4;i++){const p=i*50;c.beginPath();c.moveTo(p,0);c.lineTo(p,h);c.stroke();c.beginPath();c.moveTo(0,p);c.lineTo(w,p);c.stroke();}
-  c.fillStyle='#4a8a3a';
-  for(const i of islandsData){c.beginPath();c.arc(w/2+i.x*s,h/2+i.z*s,Math.max(5,i.radius*s),0,Math.PI*2);c.fill();}
-  c.fillStyle='rgba(255,255,255,.35)';c.font='7px sans-serif';c.textAlign='center';
-  for(const i of islandsData)c.fillText(i.name||'',w/2+i.x*s,h/2+i.z*s+i.radius*s+9);
-  for(const id in gs.players){
-    const p=gs.players[id],isMe=id===myId;
-    c.fillStyle=isMe?'#2ecc71':'#e74c3c';
-    c.beginPath();c.arc(w/2+p.bx*s,h/2+p.bz*s,isMe?4:3,0,Math.PI*2);c.fill();
-    if(isMe){const r=p.onBoat?p.bRot:p.cRot;c.strokeStyle='#2ecc71';c.lineWidth=2;c.beginPath();c.moveTo(w/2+p.bx*s,h/2+p.bz*s);c.lineTo(w/2+p.bx*s+Math.sin(r)*8,h/2+p.bz*s+Math.cos(r)*8);c.stroke();
-      if(!p.onBoat){c.fillStyle='#f1c40f';c.beginPath();c.arc(w/2+p.cx*s,h/2+p.cz*s,3,0,Math.PI*2);c.fill();}
-    }
+// ═══ MINIMAP ═══
+function drawMM() {
+  const c = mmX, w = 200, h = 200, s = w / MAP;
+  c.clearRect(0, 0, w, h); c.fillStyle = 'rgba(8,35,60,.9)'; c.fillRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(255,255,255,.05)'; c.lineWidth = 1;
+  for (let i = 1; i < 4; i++) { const p = i * 50; c.beginPath(); c.moveTo(p, 0); c.lineTo(p, h); c.stroke(); c.beginPath(); c.moveTo(0, p); c.lineTo(w, p); c.stroke(); }
+  c.fillStyle = '#4a8a3a';
+  for (const i of ISL) { c.beginPath(); c.arc(w / 2 + i.x * s, h / 2 + i.z * s, Math.max(5, i.r * s), 0, Math.PI * 2); c.fill(); }
+  c.fillStyle = 'rgba(255,255,255,.3)'; c.font = '7px sans-serif'; c.textAlign = 'center';
+  for (const i of ISL) c.fillText(i.name || '', w / 2 + i.x * s, h / 2 + i.z * s + i.r * s + 9);
+  for (const id in GS.players) {
+    const p = GS.players[id], me = id === myId, px = w / 2 + p.bx * s, py = h / 2 + p.bz * s;
+    c.fillStyle = me ? '#2ecc71' : '#e74c3c'; c.beginPath(); c.arc(px, py, me ? 4 : 2.5, 0, Math.PI * 2); c.fill();
+    if (me) { const r = p.onBoat ? p.br : p.cr; c.strokeStyle = '#2ecc71'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(px, py); c.lineTo(px + Math.sin(r) * 7, py + Math.cos(r) * 7); c.stroke(); }
   }
-  c.strokeStyle='rgba(255,255,255,.12)';c.lineWidth=1;c.strokeRect(0,0,w,h);
 }
 </script>
 </body>
